@@ -1,0 +1,28 @@
+.env
+.env.local
+
+# Runtime storage
+/storage/logs/*
+/storage/sessions/*
+/storage/*.log
+/storage/*.html
+/storage/*.js
+/storage/*.json
+/storage/*.css
+/storage/*.png
+
+# Keep storage directories in the repo
+!/storage/logs/.gitkeep
+!/storage/sessions/.gitkeep
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# PHP / test leftovers
+*.cache
+*.tmp
+*.bak

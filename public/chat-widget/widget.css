@@ -1,0 +1,444 @@
+:root {
+  --tf-primary: #0a0a0a;
+  --tf-accent: #ffd100;
+  --tf-surface: #ffffff;
+  --tf-ink: #111111;
+  --tf-muted: #5f5a47;
+  --tf-border: rgba(0, 0, 0, 0.12);
+  --tf-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.tf-chat-root {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 999999;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: var(--tf-ink);
+}
+
+.tf-chat-launcher {
+  width: 68px;
+  height: 68px;
+  border: 0;
+  border-radius: 22px;
+  padding: 0;
+  background: linear-gradient(140deg, #1a1a1a, #000000);
+  border: 2px solid rgba(255, 209, 0, 0.5);
+  box-shadow: var(--tf-shadow);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.tf-chat-launcher:hover,
+.tf-chat-launcher:focus-visible {
+  transform: translateY(-2px) scale(1.02);
+  outline: none;
+}
+
+.tf-chat-launcher img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  object-position: center 20%;
+  border-radius: 14px;
+}
+
+.tf-chat-panel {
+  width: min(380px, calc(100vw - 24px));
+  height: min(720px, calc(100vh - 108px));
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #f8fbff 0%, #eef4fa 100%);
+  background:
+    radial-gradient(circle at top right, rgba(255, 209, 0, 0.16), transparent 30%),
+    linear-gradient(180deg, #fffef8 0%, #f6f3e8 100%);
+  box-shadow: var(--tf-shadow);
+  border: 1px solid rgba(255,255,255,0.5);
+  margin-bottom: 16px;
+}
+
+.tf-chat-root[data-open="true"] .tf-chat-panel {
+  display: flex;
+  animation: tfRise .22s ease;
+}
+
+.tf-chat-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 18px 18px 14px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 209, 0, 0.28), transparent 36%),
+    linear-gradient(135deg, #1e1e1e, #000000);
+  color: white;
+}
+
+.tf-chat-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(255, 209, 0, 0.15);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.tf-chat-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+}
+
+.tf-chat-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.tf-chat-subtitle {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: rgba(255,255,255,0.85);
+}
+
+.tf-chat-actions button {
+  border: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.14);
+  color: white;
+}
+
+.tf-chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background:
+    radial-gradient(circle at bottom left, rgba(255,209,0,0.14), transparent 32%),
+    linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,255,255,0.95));
+}
+
+.tf-msg {
+  max-width: 88%;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  line-height: 1.45;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+.tf-msg-content {
+  display: grid;
+  gap: 8px;
+}
+
+.tf-msg-paragraph {
+  margin: 0;
+}
+
+.tf-msg-summary {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 209, 0, 0.12);
+  border: 1px solid rgba(255, 209, 0, 0.28);
+}
+
+.tf-msg-row {
+  display: grid;
+  gap: 3px;
+}
+
+.tf-msg-label {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-muted);
+}
+
+.tf-msg-value {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--tf-ink);
+  word-break: break-word;
+}
+
+.tf-msg-user .tf-msg-summary {
+  background: rgba(255, 209, 0, 0.1);
+  border-color: rgba(255, 209, 0, 0.22);
+}
+
+.tf-msg-user .tf-msg-label,
+.tf-msg-user .tf-msg-value {
+  color: #ffd100;
+}
+
+.tf-product-cards {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.tf-product-card {
+  border: 1px solid rgba(255, 209, 0, 0.24);
+  background: linear-gradient(180deg, #fffef8, #fff);
+  border-radius: 16px;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.tf-product-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: start;
+}
+
+.tf-product-title {
+  font-weight: 700;
+  color: #111;
+}
+
+.tf-product-code,
+.tf-product-status {
+  font-size: 11px;
+  color: var(--tf-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tf-product-summary {
+  font-size: 13px;
+  color: #2f2b1f;
+  line-height: 1.45;
+}
+
+.tf-product-link {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 9px 12px;
+  background: linear-gradient(135deg, #ffd100, #d6b602);
+  color: #000;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.tf-msg-assistant {
+  background: white;
+  border: 1px solid var(--tf-border);
+  border-bottom-left-radius: 8px;
+}
+
+.tf-msg-user {
+  margin-left: auto;
+  background: linear-gradient(135deg, #1a1a1a, #000000);
+  color: #ffd100;
+  border: 1px solid rgba(255, 209, 0, 0.25);
+  border-bottom-right-radius: 8px;
+}
+
+.tf-chat-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  overflow-x: visible;
+  padding: 0 16px 12px;
+}
+
+.tf-chat-context-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+
+.tf-chip {
+  flex: 0 1 auto;
+  border: 1px solid rgba(10, 50, 77, 0.12);
+  border: 1px solid rgba(255, 209, 0, 0.28);
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.95);
+  font-size: 12px;
+  color: var(--tf-ink);
+  cursor: pointer;
+  white-space: normal;
+  text-align: left;
+}
+
+.tf-chat-footer {
+  border-top: 1px solid rgba(255, 209, 0, 0.25);
+  background: rgba(255,255,255,0.92);
+  padding: 14px;
+}
+
+.tf-chat-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.tf-chat-input {
+  width: 100%;
+  min-height: 48px;
+  max-height: 120px;
+  resize: vertical;
+  border-radius: 16px;
+  border: 1px solid rgba(10, 50, 77, 0.14);
+  padding: 13px 14px;
+  font-size: 14px;
+  color: var(--tf-ink);
+  background: white;
+}
+
+.tf-chat-input:focus-visible {
+  outline: 2px solid rgba(255, 140, 26, 0.45);
+  border-color: var(--tf-accent);
+}
+
+.tf-chat-submit {
+  min-width: 52px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ffd100, #d6b602);
+  color: #000;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.tf-chat-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--tf-muted);
+}
+
+.tf-status {
+  min-height: 18px;
+}
+
+.tf-typing::after {
+  content: " digitando...";
+  animation: tfBlink 1s infinite ease;
+}
+
+.tf-lead-sheet {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.58);
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.tf-chat-root[data-lead-open="true"] .tf-lead-sheet {
+  display: flex;
+  align-items: end;
+}
+
+.tf-lead-card {
+  width: 100%;
+  background: white;
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: var(--tf-shadow);
+  max-height: calc(100% - 16px);
+  overflow-y: auto;
+}
+
+.tf-lead-card h3 {
+  margin: 0 0 8px;
+}
+
+.tf-lead-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tf-lead-grid input,
+.tf-lead-grid textarea {
+  width: 100%;
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  padding: 11px 12px;
+  font-size: 14px;
+}
+
+.tf-lead-grid .full {
+  grid-column: 1 / -1;
+}
+
+.tf-lead-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tf-ghost {
+  background: #f3efd7;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+@keyframes tfRise {
+  from { opacity: 0; transform: translateY(16px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes tfBlink {
+  0%, 100% { opacity: .4; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .tf-chat-root {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+  }
+
+  .tf-chat-panel {
+    width: 100%;
+    height: min(78vh, 700px);
+  }
+
+  .tf-chat-launcher {
+    margin-left: auto;
+  }
+
+  .tf-lead-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tf-chat-root[data-lead-open="true"] .tf-lead-sheet {
+    align-items: stretch;
+  }
+
+  .tf-lead-card {
+    border-radius: 20px 20px 16px 16px;
+    max-height: 100%;
+  }
+}
