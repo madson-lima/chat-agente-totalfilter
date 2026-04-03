@@ -1,18 +1,18 @@
 # Assistente Digital Totalfilter
 
-Projeto completo de assistente digital para o site da Totalfilter, com widget embutível, backend em PHP 8.2+, MySQL, memória de conversa, base de conhecimento, leads, handoff humano e painel administrativo básico.
+Projeto completo de assistente digital para o site da Totalfilter, com widget embutivel, backend em PHP 8.2+, MySQL, memoria de conversa, base de conhecimento, leads, handoff humano e painel administrativo basico.
 
 ## Arquitetura recomendada
 
-- `public/`: document root com front controller da API, widget embutível e ponte para o painel.
-- `api/`: controladores, serviços, repositórios, middleware e bootstrap da aplicação.
-- `config/`: carregamento de ambiente, conexão MySQL e configuração central.
+- `public/`: document root com front controller da API, widget embutivel e ponte para o painel.
+- `api/`: controladores, servicos, repositorios, middleware e bootstrap da aplicacao.
+- `config/`: carregamento de ambiente, conexao MySQL e configuracao central.
 - `database/`: migration principal e seed inicial de FAQ, conhecimento, produtos e settings.
-- `admin/`: painel administrativo PHP server-rendered com autenticação simples via `.env`.
-- `storage/logs/`: logs de operação e falhas.
-- `docs/`: instalação, deploy, prompt do assistente, fluxos e testes.
+- `admin/`: painel administrativo PHP server-rendered com autenticacao simples via `.env`.
+- `storage/logs/`: logs de operacao e falhas.
+- `docs/`: instalacao, deploy, prompt do assistente, fluxos e testes.
 
-## Árvore do projeto
+## Arvore do projeto
 
 ```text
 chat-agente/
@@ -96,7 +96,7 @@ chat-agente/
 <script src="/chat-widget/embed.js"></script>
 ```
 
-## Próximos passos
+## Proximos passos
 
 1. Criar `.env` a partir de `.env.example`.
 2. Rodar a migration e o seed.
