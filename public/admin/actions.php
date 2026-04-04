@@ -2,4 +2,5 @@
 
 declare(strict_types=1);
 
-require_once dirname(__DIR__, 2) . '/admin/actions.php';
+require_once dirname(__DIR__) . '/app-loader.php';
+require_once totalfilterAppBasePath() . '/admin/actions.php';

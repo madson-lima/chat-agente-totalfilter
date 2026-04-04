@@ -107,3 +107,4 @@ chat-agente/
 ## Deploy de producao
 
 O guia atualizado de publicacao esta em `docs/DEPLOY.md`.
+Para Locaweb com FileZilla, use `docs/DEPLOY-LOCAWEB.md`.

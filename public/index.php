@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-require_once dirname(__DIR__) . '/api/bootstrap.php';
+require_once __DIR__ . '/app-loader.php';
+require_once totalfilterAppBasePath() . '/api/bootstrap.php';
 $config = appConfig();
 ?>
 <!doctype html>

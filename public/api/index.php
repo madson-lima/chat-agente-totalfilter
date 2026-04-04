@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-require_once dirname(__DIR__, 2) . '/api/bootstrap.php';
+require_once dirname(__DIR__) . '/app-loader.php';
+require_once totalfilterAppBasePath() . '/api/bootstrap.php';
 
 $router = new Router();
 $rateLimiter = new RateLimitMiddleware(database(), appConfig());
