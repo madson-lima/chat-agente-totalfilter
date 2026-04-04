@@ -1,19 +1,13 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
-RUN a2dismod mpm_event mpm_worker || true \
-    && a2enmod rewrite headers \
-    && docker-php-ext-install pdo pdo_mysql
+RUN docker-php-ext-install pdo pdo_mysql
 
-WORKDIR /var/www/html
+WORKDIR /app
 
-COPY . /var/www/html
+COPY . /app
 
-RUN mkdir -p /var/www/html/storage/logs /var/www/html/storage/sessions \
-    && chown -R www-data:www-data /var/www/html/storage
+RUN mkdir -p /app/storage/logs /app/storage/sessions
 
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+EXPOSE 8080
 
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
-    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-
-EXPOSE 80
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-8080} -t public"]
