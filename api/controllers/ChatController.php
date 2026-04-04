@@ -12,7 +12,7 @@ final class ChatController
     private ContextService $contextService;
     private Logger $logger;
 
-    public function __construct(PDO $pdo, private array $config)
+    public function __construct(mixed $pdo, private array $config)
     {
         $this->chatRepository = new ChatRepository($pdo);
         $leadRepository = new LeadRepository($pdo);

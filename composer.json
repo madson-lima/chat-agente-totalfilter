@@ -1,0 +1,10 @@
+{
+  "name": "madson-lima/chat-agente-totalfilter",
+  "description": "Assistente digital Totalfilter",
+  "type": "project",
+  "require": {
+    "php": "^8.2",
+    "ext-mongodb": "*",
+    "mongodb/mongodb": "^2.2"
+  }
+}

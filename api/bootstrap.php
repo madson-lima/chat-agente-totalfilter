@@ -8,6 +8,11 @@ require_once $basePath . '/config/env.php';
 loadEnv($basePath);
 date_default_timezone_set((string) env('APP_TIMEZONE', 'America/Sao_Paulo'));
 
+$vendorAutoload = $basePath . '/vendor/autoload.php';
+if (file_exists($vendorAutoload)) {
+    require_once $vendorAutoload;
+}
+
 require_once $basePath . '/config/app.php';
 require_once $basePath . '/config/database.php';
 require_once $basePath . '/api/helpers.php';

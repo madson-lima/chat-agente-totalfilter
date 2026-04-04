@@ -1,5 +1,6 @@
 .env
 .env.local
+/vendor/
 
 # Runtime storage
 /storage/logs/*
@@ -26,3 +27,8 @@ desktop.ini
 *.cache
 *.tmp
 *.bak
+
+# Generated deployment packages
+/deploy/locaweb/*.zip
+/deploy/locaweb/private-package/
+/deploy/locaweb/public-package/

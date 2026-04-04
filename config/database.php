@@ -2,7 +2,22 @@
 
 declare(strict_types=1);
 
-function database(): PDO
+use MongoDB\Client;
+use MongoDB\Database;
+
+function database(): mixed
+{
+    $driver = strtolower((string) env('DATABASE_DRIVER', 'mysql'));
+    $mongoUri = (string) env('MONGO_URI', '');
+
+    if ($mongoUri !== '' || $driver === 'mongodb') {
+        return mongoDatabase();
+    }
+
+    return mysqlDatabase();
+}
+
+function mysqlDatabase(): PDO
 {
     static $pdo = null;
 
@@ -24,14 +39,37 @@ function database(): PDO
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
     } catch (PDOException $exception) {
-        http_response_code(500);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode([
-            'ok' => false,
-            'message' => 'Falha ao conectar ao banco de dados.',
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
+        databaseConnectionFailed();
     }
 
     return $pdo;
+}
+
+function mongoDatabase(): Database
+{
+    static $database = null;
+
+    if ($database instanceof Database) {
+        return $database;
+    }
+
+    try {
+        $client = new Client((string) env('MONGO_URI', ''));
+        $database = $client->selectDatabase((string) env('MONGO_DATABASE', 'totalfilter_chat'));
+    } catch (Throwable $exception) {
+        databaseConnectionFailed();
+    }
+
+    return $database;
+}
+
+function databaseConnectionFailed(): never
+{
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'ok' => false,
+        'message' => 'Falha ao conectar ao banco de dados.',
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
 }

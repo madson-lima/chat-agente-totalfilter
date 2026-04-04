@@ -12,6 +12,7 @@ function appConfig(): array
         'debug' => (bool) env('APP_DEBUG', false),
         'force_https' => (bool) env('APP_FORCE_HTTPS', false),
         'trusted_proxy' => env('APP_TRUSTED_PROXY', ''),
+        'database_driver' => env('DATABASE_DRIVER', 'mysql'),
         'cors' => [
             'allowed_origins' => array_values(array_filter(array_map(
                 static fn(string $origin): string => trim($origin),
@@ -57,6 +58,10 @@ function appConfig(): array
             'model' => env('LLM_MODEL', 'gpt-4.1-mini'),
             'temperature' => (float) env('LLM_TEMPERATURE', 0.4),
             'timeout' => (int) env('LLM_TIMEOUT', 25),
+        ],
+        'mongo' => [
+            'uri' => env('MONGO_URI', ''),
+            'database' => env('MONGO_DATABASE', 'totalfilter_chat'),
         ],
         'admin' => [
             'user' => env('ADMIN_USER', 'admin'),

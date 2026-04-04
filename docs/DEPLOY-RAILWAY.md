@@ -6,7 +6,7 @@ Para o seu caso, use este modelo:
 
 - site principal e widget publico na Locaweb
 - API do assistente na Railway
-- banco MySQL do assistente acessivel pela Railway
+- banco MongoDB Atlas acessivel pela Railway
 
 ## O que este projeto ja suporta
 
@@ -14,6 +14,7 @@ Para o seu caso, use este modelo:
 - `healthcheck` em `/api/health`
 - CORS configuravel para o dominio do site
 - widget com `data-api-base-url` para chamar a API externa
+- suporte a MongoDB Atlas via `MONGO_URI`
 
 ## Passo a passo
 
@@ -27,22 +28,14 @@ Na Railway:
 
 ### 2. Banco de dados
 
-Este projeto continua usando MySQL.
-
-Voce pode:
-
-- usar um MySQL externo
-- ou usar um serviço MySQL separado e apontar as variaveis da Railway para ele
+Use um cluster MongoDB Atlas e copie a connection string.
 
 Preencha:
 
 ```env
-DB_HOST=
-DB_PORT=3306
-DB_NAME=
-DB_USER=
-DB_PASS=
-DB_CHARSET=utf8mb4
+DATABASE_DRIVER=mongodb
+MONGO_URI=SUA_CONNECTION_STRING_DO_ATLAS
+MONGO_DATABASE=totalfilter_chat
 ```
 
 ### 3. Variaveis de ambiente na Railway
@@ -55,8 +48,11 @@ APP_DEBUG=false
 APP_URL=https://SEU-SERVICO.up.railway.app
 APP_TIMEZONE=America/Sao_Paulo
 APP_FORCE_HTTPS=true
+DATABASE_DRIVER=mongodb
 CORS_ALLOWED_ORIGINS=https://www.totalfilter.com.br,https://totalfilter.com.br
 CORS_ALLOW_CREDENTIALS=false
+MONGO_URI=SUA_CONNECTION_STRING_DO_ATLAS
+MONGO_DATABASE=totalfilter_chat
 
 LLM_PROVIDER=openai-compatible
 LLM_API_URL=https://api.openai.com/v1/chat/completions
@@ -123,11 +119,12 @@ Use:
 
 ## Banco e seed
 
-A Railway nao roda automaticamente a migration deste projeto.
-Entao voce precisa importar manualmente:
+Com MongoDB, as collections sao criadas automaticamente no primeiro uso.
 
-- `database/migrations/001_init.sql`
-- `database/seeds/001_seed_initial.sql`
+Se quiser popular conteudo inicial, voce pode:
+
+- cadastrar FAQ, conhecimento e produtos pelo painel depois do deploy
+- ou reaproveitar dados existentes do projeto atual por importacao futura
 
 ## Testes finais
 

@@ -8,7 +8,7 @@ final class KnowledgeController
     private KnowledgeRepository $knowledgeRepository;
     private ProductRepository $productRepository;
 
-    public function __construct(PDO $pdo, private array $config)
+    public function __construct(mixed $pdo, private array $config)
     {
         $this->faqRepository = new FaqRepository($pdo);
         $this->knowledgeRepository = new KnowledgeRepository($pdo);
