@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+deploy
+storage/*.html
+storage/*.js
+storage/*.json
+storage/*.css
+storage/*.png
+storage/logs/*
+storage/sessions/*
+!storage/logs/.gitkeep
+!storage/sessions/.gitkeep

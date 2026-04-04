@@ -5,10 +5,18 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/app-loader.php';
 require_once totalfilterAppBasePath() . '/api/bootstrap.php';
 
+$appConfig = appConfig();
+applyCorsHeaders($appConfig);
+
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
 $router = new Router();
-$rateLimiter = new RateLimitMiddleware(database(), appConfig());
-$chatController = new ChatController(database(), appConfig());
-$knowledgeController = new KnowledgeController(database(), appConfig());
+$rateLimiter = new RateLimitMiddleware(database(), $appConfig);
+$chatController = new ChatController(database(), $appConfig);
+$knowledgeController = new KnowledgeController(database(), $appConfig);
 
 $router->add('GET', '/api/health', static fn() => jsonResponse([
     'ok' => true,

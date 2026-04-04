@@ -108,3 +108,4 @@ chat-agente/
 
 O guia atualizado de publicacao esta em `docs/DEPLOY.md`.
 Para Locaweb com FileZilla, use `docs/DEPLOY-LOCAWEB.md`.
+Para backend separado na Railway, use `docs/DEPLOY-RAILWAY.md`.

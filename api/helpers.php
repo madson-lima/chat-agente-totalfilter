@@ -88,6 +88,28 @@ function applySecurityHeaders(array $config = []): void
     }
 }
 
+function applyCorsHeaders(array $config = []): void
+{
+    $allowedOrigins = $config['cors']['allowed_origins'] ?? [];
+    if (!is_array($allowedOrigins) || $allowedOrigins === []) {
+        return;
+    }
+
+    $origin = (string) ($_SERVER['HTTP_ORIGIN'] ?? '');
+    if ($origin === '' || !in_array($origin, $allowedOrigins, true)) {
+        return;
+    }
+
+    header('Access-Control-Allow-Origin: ' . $origin);
+    header('Vary: Origin');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
+
+    if (!empty($config['cors']['allow_credentials'])) {
+        header('Access-Control-Allow-Credentials: true');
+    }
+}
+
 function enforceHttps(array $config = []): void
 {
     if (empty($config['force_https']) || isHttpsRequest($config)) {

@@ -172,6 +172,23 @@ Como o `embed.js` detecta a base automaticamente, ele vai usar:
 
 sem conflitar com o restante do site.
 
+## Se a API for publicada na Railway
+
+Se voce decidir manter apenas o widget na Locaweb e mover a API para a Railway, troque o embed para:
+
+```html
+<script
+  src="/assistente/chat-widget/embed.js"
+  data-api-base-url="https://SEU-SERVICO.up.railway.app"
+></script>
+```
+
+Assim:
+
+- o visual do chat continua no seu site
+- as chamadas da API vao para a Railway
+- a Railway precisa ter `CORS_ALLOWED_ORIGINS` com o dominio do site
+
 ## URLs finais de teste
 
 Depois do upload, teste:

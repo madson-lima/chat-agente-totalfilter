@@ -12,6 +12,13 @@ function appConfig(): array
         'debug' => (bool) env('APP_DEBUG', false),
         'force_https' => (bool) env('APP_FORCE_HTTPS', false),
         'trusted_proxy' => env('APP_TRUSTED_PROXY', ''),
+        'cors' => [
+            'allowed_origins' => array_values(array_filter(array_map(
+                static fn(string $origin): string => trim($origin),
+                explode(',', (string) env('CORS_ALLOWED_ORIGINS', ''))
+            ))),
+            'allow_credentials' => (bool) env('CORS_ALLOW_CREDENTIALS', false),
+        ],
         'rate_limit_window' => (int) env('RATE_LIMIT_WINDOW', 60),
         'rate_limit_max' => (int) env('RATE_LIMIT_MAX', 25),
         'max_context_messages' => (int) env('MAX_CONTEXT_MESSAGES', 10),

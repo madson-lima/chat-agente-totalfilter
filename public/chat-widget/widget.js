@@ -20,12 +20,13 @@
 
     connectedCallback() {
       this.baseUrl = this.getAttribute("base-url") || "";
+      this.apiBaseUrl = this.getAttribute("api-base-url") || this.baseUrl;
       this.renderShell();
       this.loadConfig().then(() => this.bootstrapSession());
     }
 
     async loadConfig() {
-      const response = await fetch(`${this.baseUrl}/api/config`);
+      const response = await fetch(`${this.apiBaseUrl}/api/config`);
       const payload = await response.json();
       this.state.config = payload.assistant;
       this.render();
@@ -43,7 +44,7 @@
         }
       }
 
-      const response = await fetch(`${this.baseUrl}/api/chat/start`, {
+      const response = await fetch(`${this.apiBaseUrl}/api/chat/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -63,7 +64,7 @@
 
     async fetchHistory(sessionToken) {
       try {
-        const response = await fetch(`${this.baseUrl}/api/chat/history?session_token=${encodeURIComponent(sessionToken)}`);
+        const response = await fetch(`${this.apiBaseUrl}/api/chat/history?session_token=${encodeURIComponent(sessionToken)}`);
         if (!response.ok) return null;
         return await response.json();
       } catch (error) {
@@ -372,7 +373,7 @@
       this.renderMessages();
 
       try {
-        const response = await fetch(`${this.baseUrl}/api/chat/message`, {
+        const response = await fetch(`${this.apiBaseUrl}/api/chat/message`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -401,7 +402,7 @@
     }
 
     async resetConversation() {
-      await fetch(`${this.baseUrl}/api/chat/reset`, {
+      await fetch(`${this.apiBaseUrl}/api/chat/reset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_token: this.state.sessionToken }),
@@ -426,7 +427,7 @@
       data.session_token = this.state.sessionToken;
       data.source = "chat-widget";
 
-      const response = await fetch(`${this.baseUrl}/api/lead`, {
+      const response = await fetch(`${this.apiBaseUrl}/api/lead`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
