@@ -157,7 +157,7 @@
         subtitle: "Atendimento digital",
         placeholder: "Escreva sua mensagem",
         quick_replies: [],
-        mascot_url: `${this.baseUrl}/chat-widget/assets/mascot.svg`,
+        mascot_url: `${this.baseUrl}/chat-widget/assets/mascot-real.png`,
         primary_color: "#0A0A0A",
         accent_color: "#FFD100",
       };
@@ -170,8 +170,13 @@
       this.shadowRoot.querySelector(".tf-chat-title").textContent = config.title;
       this.shadowRoot.querySelector(".tf-chat-subtitle").textContent = config.subtitle;
       this.inputEl.placeholder = config.placeholder;
+      const mascotUrl = this.resolveMascotUrl(config.mascot_url);
       this.shadowRoot.querySelectorAll("img").forEach((img) => {
-        img.src = config.mascot_url;
+        img.src = mascotUrl;
+        img.onerror = () => {
+          img.onerror = null;
+          img.src = `${this.baseUrl}/chat-widget/assets/mascot-real.png`;
+        };
       });
 
       this.quickEl.innerHTML = "";
@@ -490,6 +495,14 @@
 
     uuid() {
       return "visitor-" + Math.random().toString(16).slice(2) + Date.now().toString(16);
+    }
+
+    resolveMascotUrl(value) {
+      const fallback = `${this.baseUrl}/chat-widget/assets/mascot-real.png`;
+      if (!value) return fallback;
+      if (/^https?:\/\//i.test(value)) return value;
+      if (value.startsWith("/")) return `${window.location.origin}${value}`;
+      return `${this.baseUrl}/${value.replace(/^\/+/, "")}`;
     }
   }
 

@@ -11,7 +11,7 @@
 .tf-chat-root {
   position: fixed;
   right: 20px;
-  bottom: 20px;
+  bottom: 88px;
   z-index: 999999;
   font-family: "Segoe UI", Arial, sans-serif;
   color: var(--tf-ink);
@@ -416,7 +416,7 @@
 @media (max-width: 640px) {
   .tf-chat-root {
     right: 12px;
-    bottom: 12px;
+    bottom: 86px;
     left: 12px;
   }
 
