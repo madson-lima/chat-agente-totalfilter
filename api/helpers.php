@@ -6,6 +6,7 @@ function jsonResponse(array $payload, int $status = 200): void
 {
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
+    header('X-Content-Type-Options: nosniff');
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
@@ -56,4 +57,79 @@ function clientIp(): string
     }
 
     return '127.0.0.1';
+}
+
+function isHttpsRequest(array $config = []): bool
+{
+    if (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') {
+        return true;
+    }
+
+    $trustedProxy = (string) ($config['trusted_proxy'] ?? '');
+    if ($trustedProxy !== '') {
+        $remoteAddr = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+        if ($remoteAddr === $trustedProxy && !empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+            return strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https';
+        }
+    }
+
+    return ((string) ($_SERVER['SERVER_PORT'] ?? '')) === '443';
+}
+
+function applySecurityHeaders(array $config = []): void
+{
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('X-Content-Type-Options: nosniff');
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+
+    if (isHttpsRequest($config)) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
+function enforceHttps(array $config = []): void
+{
+    if (empty($config['force_https']) || isHttpsRequest($config)) {
+        return;
+    }
+
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $uri = $_SERVER['REQUEST_URI'] ?? '/';
+    header('Location: https://' . $host . $uri, true, 301);
+    exit;
+}
+
+function adminVerifyPassword(array $config, string $password): bool
+{
+    $hash = (string) ($config['password_hash'] ?? '');
+    if ($hash !== '') {
+        return password_verify($password, $hash);
+    }
+
+    return hash_equals((string) ($config['password'] ?? ''), $password);
+}
+
+function csrfToken(): string
+{
+    if (empty($_SESSION['_csrf_token'])) {
+        $_SESSION['_csrf_token'] = bin2hex(random_bytes(32));
+    }
+
+    return (string) $_SESSION['_csrf_token'];
+}
+
+function csrfField(): string
+{
+    return '<input type="hidden" name="_csrf_token" value="' . htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') . '">';
+}
+
+function csrfQuery(): string
+{
+    return '_csrf_token=' . rawurlencode(csrfToken());
+}
+
+function verifyCsrf(?string $token): bool
+{
+    return !empty($_SESSION['_csrf_token']) && is_string($token) && hash_equals((string) $_SESSION['_csrf_token'], $token);
 }

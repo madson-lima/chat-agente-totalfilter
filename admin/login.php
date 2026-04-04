@@ -6,17 +6,23 @@ require_once __DIR__ . '/bootstrap.php';
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCsrf($_POST['_csrf_token'] ?? null)) {
+        $error = 'Sua sessao expirou. Atualize a pagina e tente novamente.';
+    }
+
     $user = cleanText($_POST['user'] ?? '', 80);
     $password = (string) ($_POST['password'] ?? '');
     $config = adminConfig();
 
-    if ($user === $config['user'] && hash_equals((string) $config['password'], $password)) {
+    if ($error === '' && $user === $config['user'] && adminVerifyPassword($config, $password)) {
         $_SESSION['admin_logged_in'] = true;
         header('Location: /admin/');
         exit;
     }
 
-    $error = 'Usuário ou senha inválidos.';
+    if ($error === '') {
+        $error = 'Usuario ou senha invalidos.';
+    }
 }
 ?>
 <!doctype html>
@@ -39,9 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <form class="card" method="post">
         <h1>Painel Totalfilter</h1>
-        <p>Faça login para gerenciar o assistente.</p>
+        <p>Faca login para gerenciar o assistente.</p>
         <?php if ($error): ?><div class="error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
-        <label>Usuário</label>
+        <?= csrfField() ?>
+        <label>Usuario</label>
         <input name="user" required>
         <label>Senha</label>
         <input type="password" name="password" required>

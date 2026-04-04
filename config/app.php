@@ -6,9 +6,12 @@ function appConfig(): array
 {
     return [
         'name' => env('APP_NAME', 'Totalfilter Assist'),
+        'env' => env('APP_ENV', 'production'),
         'url' => env('APP_URL', ''),
         'timezone' => env('APP_TIMEZONE', 'America/Sao_Paulo'),
         'debug' => (bool) env('APP_DEBUG', false),
+        'force_https' => (bool) env('APP_FORCE_HTTPS', false),
+        'trusted_proxy' => env('APP_TRUSTED_PROXY', ''),
         'rate_limit_window' => (int) env('RATE_LIMIT_WINDOW', 60),
         'rate_limit_max' => (int) env('RATE_LIMIT_MAX', 25),
         'max_context_messages' => (int) env('MAX_CONTEXT_MESSAGES', 10),
@@ -16,6 +19,12 @@ function appConfig(): array
         'summary_max_chars' => (int) env('SUMMARY_MAX_CHARS', 1400),
         'log_file' => dirname(__DIR__) . DIRECTORY_SEPARATOR . (string) env('LOG_FILE', 'storage/logs/app.log'),
         'lead_notification_email' => env('LEAD_NOTIFICATION_EMAIL', ''),
+        'session' => [
+            'name' => env('SESSION_NAME', 'totalfilter_admin'),
+            'secure' => (bool) env('SESSION_COOKIE_SECURE', false),
+            'httponly' => true,
+            'samesite' => env('SESSION_COOKIE_SAMESITE', 'Lax'),
+        ],
         'mail' => [
             'mailer' => env('MAIL_MAILER', 'mail'),
             'host' => env('SMTP_HOST', ''),
@@ -45,6 +54,7 @@ function appConfig(): array
         'admin' => [
             'user' => env('ADMIN_USER', 'admin'),
             'password' => env('ADMIN_PASSWORD', 'troque-esta-senha'),
+            'password_hash' => env('ADMIN_PASSWORD_HASH', ''),
         ],
     ];
 }

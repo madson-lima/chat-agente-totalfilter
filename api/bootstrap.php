@@ -25,3 +25,12 @@ foreach (glob($basePath . '/api/services/*.php') as $file) {
 foreach (glob($basePath . '/api/controllers/*.php') as $file) {
     require_once $file;
 }
+
+$appConfig = appConfig();
+if (empty($appConfig['debug'])) {
+    ini_set('display_errors', '0');
+    ini_set('log_errors', '1');
+    error_reporting(E_ALL);
+}
+
+applySecurityHeaders($appConfig);

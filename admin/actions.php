@@ -5,6 +5,12 @@ declare(strict_types=1);
 require_once __DIR__ . '/bootstrap.php';
 requireAdmin();
 
+$token = $_POST['_csrf_token'] ?? $_GET['_csrf_token'] ?? null;
+if (!verifyCsrf(is_string($token) ? $token : null)) {
+    http_response_code(419);
+    exit('CSRF token invalido.');
+}
+
 $pdo = database();
 $faqRepository = new FaqRepository($pdo);
 $knowledgeRepository = new KnowledgeRepository($pdo);

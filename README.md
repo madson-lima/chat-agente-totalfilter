@@ -103,3 +103,7 @@ chat-agente/
 3. Configurar a chave da API LLM.
 4. Publicar a pasta `public/` como document root.
 5. Inserir o script de embed no site.
+
+## Deploy de producao
+
+O guia atualizado de publicacao esta em `docs/DEPLOY.md`.

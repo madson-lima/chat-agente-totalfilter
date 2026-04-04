@@ -85,7 +85,7 @@ $stats = [
             </div>
         </div>
         <div class="toolbar" style="margin-top:18px">
-            <a class="btn" href="/admin/export-leads.php">Exportar leads</a>
+            <a class="btn" href="/admin/export-leads.php?<?= htmlspecialchars(csrfQuery(), ENT_QUOTES, 'UTF-8') ?>">Exportar leads</a>
             <a class="btn danger" href="/admin/logout.php">Sair</a>
         </div>
     </header>
@@ -103,6 +103,7 @@ $stats = [
             <div class="card">
                 <h2>Persona e widget</h2>
                 <form action="/admin/actions.php" method="post">
+                    <?= csrfField() ?>
                     <input type="hidden" name="entity" value="settings">
                     <input type="hidden" name="action" value="save">
                     <label>Nome do assistente</label>
@@ -131,6 +132,7 @@ $stats = [
             <div class="card">
                 <h2>Novo FAQ</h2>
                 <form action="/admin/actions.php" method="post">
+                    <?= csrfField() ?>
                     <input type="hidden" name="entity" value="faq">
                     <input type="hidden" name="action" value="save">
                     <label>Categoria</label>
@@ -150,6 +152,7 @@ $stats = [
             <div class="card">
                 <h2>Nova página de conhecimento</h2>
                 <form action="/admin/actions.php" method="post">
+                    <?= csrfField() ?>
                     <input type="hidden" name="entity" value="knowledge">
                     <input type="hidden" name="action" value="save">
                     <label>Título</label>
@@ -173,6 +176,7 @@ $stats = [
             <div class="card">
                 <h2>Novo produto indexado</h2>
                 <form action="/admin/actions.php" method="post">
+                    <?= csrfField() ?>
                     <input type="hidden" name="entity" value="product">
                     <input type="hidden" name="action" value="save">
                     <label>Código</label>
@@ -208,7 +212,7 @@ $stats = [
                         <tr>
                             <td><?= htmlspecialchars($item['question'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars((string) $item['category'], ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><a class="btn danger" href="/admin/actions.php?entity=faq&action=delete&id=<?= (int) $item['id'] ?>">Excluir</a></td>
+                            <td><a class="btn danger" href="/admin/actions.php?entity=faq&action=delete&id=<?= (int) $item['id'] ?>&<?= htmlspecialchars(csrfQuery(), ENT_QUOTES, 'UTF-8') ?>">Excluir</a></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -223,7 +227,7 @@ $stats = [
                         <tr>
                             <td><?= htmlspecialchars($item['title'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= (int) $item['priority'] ?></td>
-                            <td><a class="btn danger" href="/admin/actions.php?entity=knowledge&action=delete&id=<?= (int) $item['id'] ?>">Excluir</a></td>
+                            <td><a class="btn danger" href="/admin/actions.php?entity=knowledge&action=delete&id=<?= (int) $item['id'] ?>&<?= htmlspecialchars(csrfQuery(), ENT_QUOTES, 'UTF-8') ?>">Excluir</a></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -238,7 +242,7 @@ $stats = [
                         <tr>
                             <td><?= htmlspecialchars($item['product_name'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars((string) $item['category'], ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><a class="btn danger" href="/admin/actions.php?entity=product&action=delete&id=<?= (int) $item['id'] ?>">Excluir</a></td>
+                            <td><a class="btn danger" href="/admin/actions.php?entity=product&action=delete&id=<?= (int) $item['id'] ?>&<?= htmlspecialchars(csrfQuery(), ENT_QUOTES, 'UTF-8') ?>">Excluir</a></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -265,8 +269,8 @@ $stats = [
                             <?php if (!empty($lead['company'])): ?><p><strong>Empresa:</strong> <?= htmlspecialchars((string) $lead['company'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
                             <?php if (!empty($lead['message'])): ?><p><strong>Obs:</strong> <?= htmlspecialchars((string) $lead['message'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
                             <div class="toolbar" style="margin-top:10px">
-                                <a class="btn secondary" href="/admin/actions.php?entity=lead&action=status&id=<?= (int) $lead['id'] ?>&status=in_progress">Em atendimento</a>
-                                <a class="btn" href="/admin/actions.php?entity=lead&action=status&id=<?= (int) $lead['id'] ?>&status=done">Concluir</a>
+                                <a class="btn secondary" href="/admin/actions.php?entity=lead&action=status&id=<?= (int) $lead['id'] ?>&status=in_progress&<?= htmlspecialchars(csrfQuery(), ENT_QUOTES, 'UTF-8') ?>">Em atendimento</a>
+                                <a class="btn" href="/admin/actions.php?entity=lead&action=status&id=<?= (int) $lead['id'] ?>&status=done&<?= htmlspecialchars(csrfQuery(), ENT_QUOTES, 'UTF-8') ?>">Concluir</a>
                             </div>
                         </article>
                     <?php endforeach; ?>
@@ -288,8 +292,8 @@ $stats = [
                             <td><?= htmlspecialchars((string) $item['reason'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td>
                                 <div class="toolbar">
-                                    <a class="btn secondary" href="/admin/actions.php?entity=handoff&action=status&id=<?= (int) $item['id'] ?>&status=in_progress">Assumir</a>
-                                    <a class="btn" href="/admin/actions.php?entity=handoff&action=status&id=<?= (int) $item['id'] ?>&status=done">Concluir</a>
+                                    <a class="btn secondary" href="/admin/actions.php?entity=handoff&action=status&id=<?= (int) $item['id'] ?>&status=in_progress&<?= htmlspecialchars(csrfQuery(), ENT_QUOTES, 'UTF-8') ?>">Assumir</a>
+                                    <a class="btn" href="/admin/actions.php?entity=handoff&action=status&id=<?= (int) $item['id'] ?>&status=done&<?= htmlspecialchars(csrfQuery(), ENT_QUOTES, 'UTF-8') ?>">Concluir</a>
                                 </div>
                             </td>
                         </tr>

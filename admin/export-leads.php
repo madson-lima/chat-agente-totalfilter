@@ -5,6 +5,11 @@ declare(strict_types=1);
 require_once __DIR__ . '/bootstrap.php';
 requireAdmin();
 
+if (!verifyCsrf($_GET['_csrf_token'] ?? null)) {
+    http_response_code(419);
+    exit('CSRF token invalido.');
+}
+
 $leadRepository = new LeadRepository(database());
 $leads = $leadRepository->all(1000);
 
