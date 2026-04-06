@@ -16,7 +16,7 @@ final class ProductSpreadsheetImportService
     ) {
     }
 
-    public function import(string $filePath, string $sheetName = 'BASE DE DADOS'): array
+    public function import(string $filePath, string $sheetName = 'BASE DE DADOS', ?callable $onProgress = null): array
     {
         if (!is_file($filePath)) {
             throw new InvalidArgumentException('Planilha nao encontrada: ' . $filePath);
@@ -37,6 +37,15 @@ final class ProductSpreadsheetImportService
             'ignorados' => 0,
             'erros' => 0,
         ];
+
+        if ($onProgress !== null) {
+            $onProgress($stats + [
+                'status' => 'running',
+                'current_row' => $headerRow,
+                'highest_row' => $highestRow,
+                'updated_at' => date(DATE_ATOM),
+            ]);
+        }
 
         for ($startRow = $headerRow + 1; $startRow <= $highestRow; $startRow += self::CHUNK_SIZE) {
             $endRow = min($startRow + self::CHUNK_SIZE - 1, $highestRow);
@@ -66,6 +75,14 @@ final class ProductSpreadsheetImportService
                 }
             }
 
+            if ($onProgress !== null) {
+                $onProgress($stats + [
+                    'status' => 'running',
+                    'current_row' => $endRow,
+                    'highest_row' => $highestRow,
+                    'updated_at' => date(DATE_ATOM),
+                ]);
+            }
             gc_collect_cycles();
         }
 

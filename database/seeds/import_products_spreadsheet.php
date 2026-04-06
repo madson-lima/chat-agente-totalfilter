@@ -32,7 +32,16 @@ try {
     $repository = new ProductRepository(database());
     $normalizer = new ProductSpreadsheetNormalizer();
     $service = new ProductSpreadsheetImportService($repository, $normalizer, $logger);
-    $stats = $service->import($filePath, $sheetName);
+    $stats = $service->import($filePath, $sheetName, static function (array $progress) use ($statusFile, $filePath, $sheetName): void {
+        writeImportStatus($statusFile, [
+            'ok' => true,
+            'status' => 'running',
+            'file' => $filePath,
+            'sheet' => $sheetName,
+            'updated_at' => date(DATE_ATOM),
+            'progress' => $progress,
+        ]);
+    });
 
     echo "Importacao concluida.\n";
     foreach ($stats as $key => $value) {
