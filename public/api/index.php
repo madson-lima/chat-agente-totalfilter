@@ -8,6 +8,18 @@ require_once totalfilterAppBasePath() . '/api/bootstrap.php';
 $appConfig = appConfig();
 applyCorsHeaders($appConfig);
 
+set_exception_handler(static function (Throwable $exception) use ($appConfig): void {
+    (new Logger($appConfig))->error('Erro nao tratado na API', [
+        'path' => $_SERVER['REQUEST_URI'] ?? '',
+        'erro' => $exception->getMessage(),
+    ]);
+    jsonResponse([
+        'ok' => false,
+        'message' => 'Erro interno na API.',
+        'detail' => !empty($appConfig['debug']) ? $exception->getMessage() : 'Consulte os logs da aplicacao.',
+    ], 500);
+});
+
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     http_response_code(204);
     exit;
