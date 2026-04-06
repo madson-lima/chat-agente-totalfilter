@@ -7,7 +7,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 final class ProductSpreadsheetImportService
 {
-    private const CHUNK_SIZE = 250;
+    private const CHUNK_SIZE = 25;
 
     public function __construct(
         private ProductRepository $productRepository,

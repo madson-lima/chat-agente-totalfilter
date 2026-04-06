@@ -13,10 +13,13 @@ set_exception_handler(static function (Throwable $exception) use ($appConfig): v
         'path' => $_SERVER['REQUEST_URI'] ?? '',
         'erro' => $exception->getMessage(),
     ]);
+    $path = (string) ($_SERVER['REQUEST_URI'] ?? '');
+    $showDetail = !empty($appConfig['debug']) || str_starts_with($path, '/api/admin/import-products');
+
     jsonResponse([
         'ok' => false,
         'message' => 'Erro interno na API.',
-        'detail' => !empty($appConfig['debug']) ? $exception->getMessage() : 'Consulte os logs da aplicacao.',
+        'detail' => $showDetail ? $exception->getMessage() : 'Consulte os logs da aplicacao.',
     ], 500);
 });
 
@@ -42,10 +45,13 @@ register_shutdown_function(static function () use ($appConfig): void {
         'linha' => $error['line'] ?? '',
     ]);
 
+    $path = (string) ($_SERVER['REQUEST_URI'] ?? '');
+    $showDetail = !empty($appConfig['debug']) || str_starts_with($path, '/api/admin/import-products');
+
     jsonResponse([
         'ok' => false,
         'message' => 'Erro fatal na API.',
-        'detail' => !empty($appConfig['debug']) ? ($error['message'] ?? 'Erro fatal') : 'Consulte os logs da aplicacao.',
+        'detail' => $showDetail ? ($error['message'] ?? 'Erro fatal') : 'Consulte os logs da aplicacao.',
     ], 500);
 });
 
