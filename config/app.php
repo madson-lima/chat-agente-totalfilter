@@ -63,6 +63,10 @@ function appConfig(): array
             'uri' => env('MONGO_URI', ''),
             'database' => env('MONGO_DATABASE', 'totalfilter_chat'),
         ],
+        'product_import' => [
+            'token' => env('PRODUCT_IMPORT_TOKEN', ''),
+            'max_upload_bytes' => (int) env('PRODUCT_IMPORT_MAX_UPLOAD_BYTES', 52428800),
+        ],
         'admin' => [
             'user' => env('ADMIN_USER', 'admin'),
             'password' => env('ADMIN_PASSWORD', 'troque-esta-senha'),

@@ -122,6 +122,21 @@ Para importar:
 php database/seeds/import_products_spreadsheet.php "C:\Users\madsh\Downloads\REGISTRO DE PRODUTOS ACABADOS.xlsm"
 ```
 
+Para importar via Railway, configure uma variável de ambiente forte:
+
+```env
+PRODUCT_IMPORT_TOKEN=cole-um-token-longo-e-secreto
+```
+
+Depois do redeploy, envie a planilha para a rota protegida:
+
+```powershell
+curl.exe -X POST "https://chat-agente-totalfilter-production.up.railway.app/api/admin/import-products" `
+  -H "Authorization: Bearer SEU_TOKEN" `
+  -F "file=@C:\Users\madsh\Downloads\REGISTRO DE PRODUTOS ACABADOS.xlsm" `
+  -F "sheet=BASE DE DADOS"
+```
+
 O script e idempotente: se encontrar o mesmo `codigoOriginal`, `codigoTotalfilter` ou `product_code`, atualiza o registro em vez de duplicar. Ao final ele informa quantos registros foram lidos, inseridos, atualizados, ignorados e com erro.
 
 Depois da importacao, o agente passa a buscar produtos por codigo original, codigo Totalfilter, descricao, aplicacao, desenho e termos livres.
