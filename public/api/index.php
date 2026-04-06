@@ -112,6 +112,25 @@ $router->add('GET', '/api/products', static function () use ($appConfig) {
     $knowledgeController = new KnowledgeController(database(), $appConfig);
     $knowledgeController->products();
 });
+$router->add('GET', '/api/admin/import-products/status', static function () use ($appConfig) {
+    $token = (string) ($appConfig['product_import']['token'] ?? '');
+    $provided = (string) ($_GET['token'] ?? '');
+    $authorization = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? '');
+    if (preg_match('/^Bearer\s+(.+)$/i', $authorization, $matches) === 1) {
+        $provided = trim($matches[1]);
+    }
+    if ($token === '' || $provided === '' || !hash_equals($token, $provided)) {
+        jsonResponse(['ok' => false, 'message' => 'Nao autorizado.'], 401);
+    }
+
+    $statusFile = dirname(__DIR__, 2) . '/storage/product-import-status.json';
+    if (!is_file($statusFile)) {
+        jsonResponse(['ok' => true, 'status' => 'not_started']);
+    }
+
+    $status = json_decode((string) file_get_contents($statusFile), true);
+    jsonResponse(is_array($status) ? $status : ['ok' => false, 'status' => 'invalid_status_file']);
+});
 $router->add('POST', '/api/admin/import-products', static function () use ($appConfig) {
     $token = (string) ($appConfig['product_import']['token'] ?? '');
     $provided = '';
@@ -150,25 +169,47 @@ $router->add('POST', '/api/admin/import-products', static function () use ($appC
     $sheetName = cleanText((string) ($_POST['sheet'] ?? 'BASE DE DADOS'), 100);
     $sheetName = $sheetName !== '' ? $sheetName : 'BASE DE DADOS';
     $tmpPath = (string) ($file['tmp_name'] ?? '');
-
-    try {
-        $logger = new Logger($appConfig);
-        $service = new ProductSpreadsheetImportService(
-            new ProductRepository(database()),
-            new ProductSpreadsheetNormalizer(),
-            $logger
-        );
-        $stats = $service->import($tmpPath, $sheetName);
-        jsonResponse([
-            'ok' => true,
-            'message' => 'Importacao concluida.',
-            'file' => $originalName,
-            'stats' => $stats,
-        ]);
-    } catch (Throwable $exception) {
-        (new Logger($appConfig))->error('Falha na importacao via API', ['erro' => $exception->getMessage()]);
-        jsonResponse(['ok' => false, 'message' => 'Falha na importacao.', 'detail' => $exception->getMessage()], 500);
+    $storageDir = dirname(__DIR__, 2) . '/storage';
+    $importDir = $storageDir . '/imports';
+    if (!is_dir($importDir)) {
+        mkdir($importDir, 0775, true);
     }
+    $jobId = bin2hex(random_bytes(8));
+    $targetPath = $importDir . '/products-' . $jobId . '.' . $extension;
+    if (!move_uploaded_file($tmpPath, $targetPath)) {
+        jsonResponse(['ok' => false, 'message' => 'Nao foi possivel armazenar temporariamente a planilha.'], 500);
+    }
+
+    $statusFile = $storageDir . '/product-import-status.json';
+    file_put_contents($statusFile, json_encode([
+        'ok' => true,
+        'status' => 'running',
+        'job_id' => $jobId,
+        'file' => $originalName,
+        'sheet' => $sheetName,
+        'started_at' => date(DATE_ATOM),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+    $phpBinary = PHP_BINARY;
+    $script = totalfilterAppBasePath() . '/database/seeds/import_products_spreadsheet.php';
+    $command = sprintf(
+        '%s %s %s %s --status-file=%s > /tmp/product-import-%s.log 2>&1 &',
+        escapeshellarg($phpBinary),
+        escapeshellarg($script),
+        escapeshellarg($targetPath),
+        escapeshellarg($sheetName),
+        escapeshellarg($statusFile),
+        escapeshellarg($jobId)
+    );
+    exec($command);
+
+    jsonResponse([
+        'ok' => true,
+        'status' => 'queued',
+        'message' => 'Importacao iniciada em segundo plano.',
+        'job_id' => $jobId,
+        'status_url' => '/api/admin/import-products/status',
+    ], 202);
 });
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
