@@ -20,7 +20,16 @@ final class ProductSpreadsheetImportService
             throw new InvalidArgumentException('Planilha nao encontrada: ' . $filePath);
         }
 
-        $spreadsheet = IOFactory::load($filePath);
+        $reader = IOFactory::createReaderForFile($filePath);
+        $reader->setReadDataOnly(true);
+        if (method_exists($reader, 'setReadEmptyCells')) {
+            $reader->setReadEmptyCells(false);
+        }
+        if (method_exists($reader, 'setLoadSheetsOnly')) {
+            $reader->setLoadSheetsOnly([$sheetName]);
+        }
+
+        $spreadsheet = $reader->load($filePath);
         $sheet = $spreadsheet->getSheetByName($sheetName);
         if (!$sheet instanceof Worksheet) {
             throw new RuntimeException('Aba nao encontrada: ' . $sheetName);

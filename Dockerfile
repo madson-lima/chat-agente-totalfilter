@@ -19,4 +19,4 @@ RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoload
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "php -d upload_max_filesize=64M -d post_max_size=72M -d max_execution_time=300 -S 0.0.0.0:${PORT:-8080} -t public"]
+CMD ["sh", "-c", "php -d memory_limit=512M -d upload_max_filesize=64M -d post_max_size=72M -d max_execution_time=300 -S 0.0.0.0:${PORT:-8080} -t public"]
