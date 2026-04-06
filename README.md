@@ -1,6 +1,6 @@
 # Assistente Digital Totalfilter
 
-Projeto completo de assistente digital para o site da Totalfilter, com widget embutivel, backend em PHP 8.2+, MySQL, memoria de conversa, base de conhecimento, leads, handoff humano e painel administrativo basico.
+Projeto completo de assistente digital para o site da Totalfilter, com widget embutivel, backend em PHP 8.2+, MongoDB Atlas/MySQL, memoria de conversa, base de conhecimento, catalogo de produtos, leads, handoff humano e painel administrativo basico.
 
 ## Arquitetura recomendada
 
@@ -94,6 +94,46 @@ chat-agente/
 
 ```html
 <script src="/chat-widget/embed.js"></script>
+```
+
+## Importar planilha de produtos
+
+A importacao da planilha `REGISTRO DE PRODUTOS ACABADOS.xlsm` usa a aba `BASE DE DADOS` e grava os produtos na collection `product_index`, a mesma base consultada pelo agente.
+
+Regra de codigo Totalfilter:
+
+```text
+UH082CTS255 -> TUH082CTS255
+UA351TP -> TUA351TP
+DABO3341322 -> TDABO3341322
+```
+
+A regra apenas adiciona `T` no inicio quando o codigo original ainda nao comeca com `T`. Ela nao troca letras e nao altera o codigo original.
+
+Para instalar a biblioteca de leitura de Excel:
+
+```powershell
+composer install
+```
+
+Para importar:
+
+```powershell
+php database/seeds/import_products_spreadsheet.php "C:\Users\madsh\Downloads\REGISTRO DE PRODUTOS ACABADOS.xlsm"
+```
+
+O script e idempotente: se encontrar o mesmo `codigoOriginal`, `codigoTotalfilter` ou `product_code`, atualiza o registro em vez de duplicar. Ao final ele informa quantos registros foram lidos, inseridos, atualizados, ignorados e com erro.
+
+Depois da importacao, o agente passa a buscar produtos por codigo original, codigo Totalfilter, descricao, aplicacao, desenho e termos livres.
+
+Exemplos de teste no chat:
+
+```text
+Tem filtro UH082CTS255?
+Tem filtro TUH082CTS255?
+Qual o equivalente Totalfilter do codigo UH082CTS255?
+Tem filtro para CLARK 8169232C?
+Qual o desenho do filtro DABO3341322?
 ```
 
 ## Proximos passos

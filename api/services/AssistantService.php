@@ -186,17 +186,34 @@ PROMPT;
 
         if ($intent === 'produto') {
             if (!empty($knowledge['products'][0])) {
+                $helper = new ProductResponseHelper();
+                $code = $this->extractCodeFromMessage($message);
+                if ($this->asksForEquivalent($message) && $code !== '') {
+                    return $helper->equivalentForCode($code, $knowledge['products']);
+                }
+                if ($code !== '') {
+                    return $helper->answerForCode($code, $knowledge['products']);
+                }
+
                 $product = $knowledge['products'][0];
                 $parts = [];
-                $parts[] = 'Encontrei o produto ' . $product['product_name'] . ($product['product_code'] ? ' (codigo ' . $product['product_code'] . ')' : '') . '.';
+                $displayName = $product['product_name'] ?? $product['descricao'] ?? 'produto';
+                $displayCode = $product['codigoTotalfilter'] ?? $product['product_code'] ?? '';
+                $parts[] = 'Encontrei o produto ' . $displayName . ($displayCode ? ' (codigo ' . $displayCode . ')' : '') . '.';
+                if (!empty($product['codigoOriginal']) && !empty($product['codigoTotalfilter'])) {
+                    $parts[] = 'Codigo original: ' . $product['codigoOriginal'] . '. Codigo Totalfilter: ' . $product['codigoTotalfilter'] . '.';
+                }
                 if (!empty($product['category'])) {
                     $parts[] = 'Categoria: ' . $product['category'] . '.';
                 }
-                if (!empty($product['application_summary'])) {
-                    $parts[] = 'Resumo publico: ' . $product['application_summary'] . '.';
+                if (!empty($product['application_summary']) || !empty($product['aplicacao'])) {
+                    $parts[] = 'Aplicacao: ' . ($product['application_summary'] ?? $product['aplicacao']) . '.';
                 }
-                if (!empty($product['technical_notes'])) {
-                    $parts[] = 'Dados tecnicos publicos: ' . $product['technical_notes'] . '.';
+                if (!empty($product['desenhoCodigo'])) {
+                    $parts[] = 'Desenho: ' . $product['desenhoCodigo'] . '.';
+                }
+                if (!empty($product['technical_notes']) || !empty($product['medidas'])) {
+                    $parts[] = 'Dados tecnicos publicos: ' . ($product['technical_notes'] ?? $product['medidas']) . '.';
                 }
                 if (!empty($product['product_url'])) {
                     $parts[] = 'Detalhes: ' . $product['product_url'];
@@ -256,5 +273,23 @@ PROMPT;
             'has_vehicle' => preg_match('/(veiculo|veículo|carro|caminhao|caminhão|moto|motor|ano|modelo|placa|aplicacao|aplicação|equipamento)/u', $text) === 1,
             'has_product' => preg_match('/(filtro|elemento filtrante|ar|oleo|óleo|combustivel|combustível|cabine|hidraulico|hidráulico|produto|codigo|código|referencia|referência)/u', $text) === 1,
         ];
+    }
+
+    private function asksForEquivalent(string $message): bool
+    {
+        return preg_match('/(equivalente|correspondente|totalfilter|qual.*codigo|qual.*c[oó]digo)/iu', $message) === 1;
+    }
+
+    private function extractCodeFromMessage(string $message): string
+    {
+        $tokens = preg_split('/[^A-Za-z0-9.-]+/', $message) ?: [];
+        foreach ($tokens as $token) {
+            $token = strtoupper(trim($token));
+            if (strlen($token) >= 5 && preg_match('/\d/', $token) === 1) {
+                return $token;
+            }
+        }
+
+        return '';
     }
 }

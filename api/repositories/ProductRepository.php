@@ -66,6 +66,12 @@ final class ProductRepository extends BaseRepository
                 ['product_code' => $regex],
                 ['application_summary' => $regex],
                 ['keywords' => $regex],
+                ['codigoOriginal' => $regex],
+                ['codigoTotalfilter' => $regex],
+                ['descricao' => $regex],
+                ['aplicacao' => $regex],
+                ['desenhoCodigo' => $regex],
+                ['searchableText' => $regex],
             ],
         ]));
         foreach ($items as &$item) {
@@ -74,6 +80,9 @@ final class ProductRepository extends BaseRepository
             $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['product_code'] ?? '')) ? 5 : 0;
             $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['application_summary'] ?? '')) ? 3 : 0;
             $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['keywords'] ?? '')) ? 4 : 0;
+            $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['codigoOriginal'] ?? '')) ? 8 : 0;
+            $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['codigoTotalfilter'] ?? '')) ? 8 : 0;
+            $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['searchableText'] ?? '')) ? 4 : 0;
             $item['relevance'] = $relevance;
         }
         usort($items, fn($a, $b) => [$b['relevance'], $b['is_launch'] ?? 0, $b['updated_at'] ?? ''] <=> [$a['relevance'], $a['is_launch'] ?? 0, $a['updated_at'] ?? '']);
@@ -108,9 +117,127 @@ final class ProductRepository extends BaseRepository
 
         $term = strtoupper(trim($term));
         $items = $this->normalizeMany($this->mongo->product_index->find(['is_active' => 1]));
-        $items = array_values(array_filter($items, static fn(array $item): bool => strtoupper((string) ($item['product_code'] ?? '')) === $term || strtoupper((string) ($item['product_name'] ?? '')) === $term));
+        $items = array_values(array_filter($items, static fn(array $item): bool =>
+            strtoupper((string) ($item['product_code'] ?? '')) === $term
+            || strtoupper((string) ($item['product_name'] ?? '')) === $term
+            || strtoupper((string) ($item['codigoOriginal'] ?? '')) === $term
+            || strtoupper((string) ($item['codigoTotalfilter'] ?? '')) === $term
+        ));
         usort($items, fn($a, $b) => [$b['is_launch'] ?? 0, $b['updated_at'] ?? ''] <=> [$a['is_launch'] ?? 0, $a['updated_at'] ?? '']);
         return array_slice($items, 0, 5);
+    }
+
+    public function findByCodigo(string $codigo, int $limit = 5): array
+    {
+        $codigo = strtoupper(trim($codigo));
+        if ($codigo === '') {
+            return [];
+        }
+
+        if ($this->pdo instanceof PDO) {
+            return $this->exactMatch($codigo);
+        }
+
+        return $this->normalizeMany($this->mongo->product_index->find([
+            'is_active' => 1,
+            '$or' => [
+                ['product_code' => $codigo],
+                ['codigoOriginal' => $codigo],
+                ['codigoTotalfilter' => $codigo],
+            ],
+        ], ['limit' => $limit]));
+    }
+
+    public function searchByField(string $field, string $query, int $limit = 8): array
+    {
+        $query = trim($query);
+        if ($query === '') {
+            return [];
+        }
+
+        if ($this->pdo instanceof PDO) {
+            return $this->search($query, $limit);
+        }
+
+        $allowed = ['aplicacao', 'descricao', 'desenhoCodigo', 'searchableText'];
+        $field = in_array($field, $allowed, true) ? $field : 'searchableText';
+        $regex = new MongoDB\BSON\Regex(preg_quote($query, '/'), 'i');
+
+        return $this->normalizeMany($this->mongo->product_index->find([
+            'is_active' => 1,
+            $field => $regex,
+        ], ['limit' => $limit]));
+    }
+
+    public function upsertImportedProduct(array $data): string
+    {
+        if ($this->pdo instanceof PDO) {
+            $existing = $this->exactMatch((string) $data['codigoTotalfilter']);
+            $data['id'] = $existing[0]['id'] ?? null;
+            $this->save([
+                'id' => $data['id'],
+                'product_code' => $data['codigoTotalfilter'],
+                'product_name' => $data['descricao'] ?: $data['codigoTotalfilter'],
+                'category' => $data['marcaOrigem'] ?: 'Planilha Totalfilter',
+                'application_summary' => $data['aplicacao'],
+                'technical_notes' => trim(($data['desenhoCodigo'] ? 'Desenho: ' . $data['desenhoCodigo'] . '. ' : '') . ($data['medidas'] ? 'Medidas: ' . $data['medidas'] : '')),
+                'status_label' => 'Importado',
+                'product_url' => '',
+                'keywords' => $data['searchableText'],
+                'is_launch' => 0,
+                'is_active' => 1,
+            ]);
+            return $existing ? 'updated' : 'inserted';
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $codigoOriginal = (string) $data['codigoOriginal'];
+        $codigoTotalfilter = (string) $data['codigoTotalfilter'];
+        $filter = [
+            '$or' => [
+                ['codigoOriginal' => $codigoOriginal],
+                ['codigoTotalfilter' => $codigoTotalfilter],
+                ['product_code' => $codigoTotalfilter],
+            ],
+        ];
+
+        $existing = $this->mongo->product_index->findOne($filter);
+        $payload = [
+            'marcaOrigem' => $data['marcaOrigem'],
+            'codigoOriginal' => $codigoOriginal,
+            'codigoTotalfilter' => $codigoTotalfilter,
+            'descricao' => $data['descricao'],
+            'desenhoCodigo' => $data['desenhoCodigo'],
+            'aplicacao' => $data['aplicacao'],
+            'medidas' => $data['medidas'],
+            'dadosBrutosDaLinha' => $data['dadosBrutosDaLinha'],
+            'searchableText' => $data['searchableText'],
+            'fonte' => $data['fonte'],
+            'ativo' => true,
+            'product_code' => $codigoTotalfilter,
+            'product_name' => $data['descricao'] ?: $codigoTotalfilter,
+            'category' => $data['marcaOrigem'] ?: 'Planilha Totalfilter',
+            'application_summary' => $data['aplicacao'],
+            'technical_notes' => trim(($data['desenhoCodigo'] ? 'Desenho: ' . $data['desenhoCodigo'] . '. ' : '') . ($data['medidas'] ? 'Medidas: ' . $data['medidas'] : '')),
+            'status_label' => 'Importado',
+            'product_url' => '',
+            'keywords' => $data['searchableText'],
+            'is_launch' => 0,
+            'is_active' => 1,
+            'updated_at' => $now,
+            'updatedAt' => $now,
+        ];
+
+        if ($existing !== null) {
+            $this->mongo->product_index->updateOne($filter, ['$set' => $payload]);
+            return 'updated';
+        }
+
+        $payload['id'] = $this->nextId();
+        $payload['created_at'] = $now;
+        $payload['createdAt'] = $now;
+        $this->mongo->product_index->insertOne($payload);
+        return 'inserted';
     }
 
     public function save(array $data): void

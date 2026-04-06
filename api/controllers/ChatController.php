@@ -620,12 +620,12 @@ final class ChatController
 
         foreach ($items as $item) {
             $cards[] = [
-                'title' => $item['product_name'] ?? '',
-                'code' => $item['product_code'] ?? '',
+                'title' => $item['product_name'] ?? $item['descricao'] ?? '',
+                'code' => $item['codigoTotalfilter'] ?? $item['product_code'] ?? '',
                 'category' => $item['category'] ?? '',
-                'summary' => $item['application_summary'] ?? '',
+                'summary' => $item['application_summary'] ?? $item['aplicacao'] ?? '',
                 'details_url' => $item['product_url'] ?? '',
-                'status' => $item['status_label'] ?? '',
+                'status' => $item['status_label'] ?? (!empty($item['codigoOriginal']) ? 'Equiv. ' . $item['codigoOriginal'] : ''),
             ];
         }
 

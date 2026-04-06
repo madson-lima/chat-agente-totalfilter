@@ -24,7 +24,7 @@ final class KnowledgeService
         if (empty($products)) {
             $products = $this->productRepository->search($normalized);
         }
-        $launches = str_contains(mb_strtolower($normalized), 'lanç') || str_contains(mb_strtolower($normalized), 'novidade')
+        $launches = str_contains(mb_strtolower($normalized), 'lanc') || str_contains(mb_strtolower($normalized), 'lanç') || str_contains(mb_strtolower($normalized), 'novidade')
             ? $this->productRepository->latestLaunches()
             : [];
 
@@ -47,10 +47,10 @@ final class KnowledgeService
         if (!empty($knowledge['products'][0])) {
             $product = $knowledge['products'][0];
             return sprintf(
-                '%s é um item da linha %s. %s',
-                $product['product_name'],
-                $product['category'] ?: 'Totalfilter',
-                $product['application_summary']
+                '%s e um item da linha %s. %s',
+                $product['product_name'] ?? $product['descricao'] ?? 'Produto',
+                $product['category'] ?? 'Totalfilter',
+                $product['application_summary'] ?? $product['aplicacao'] ?? ''
             );
         }
         return null;
@@ -60,7 +60,7 @@ final class KnowledgeService
     {
         $lines = [];
 
-        foreach (['faq' => 'FAQ', 'knowledge' => 'Base institucional', 'products' => 'Produtos', 'launches' => 'Lançamentos'] as $key => $label) {
+        foreach (['faq' => 'FAQ', 'knowledge' => 'Base institucional', 'products' => 'Produtos', 'launches' => 'Lancamentos'] as $key => $label) {
             if (empty($knowledge[$key])) {
                 continue;
             }
@@ -72,7 +72,16 @@ final class KnowledgeService
                     continue;
                 }
                 if ($key === 'products' || $key === 'launches') {
-                    $lines[] = '- ' . $item['product_name'] . ' (' . ($item['product_code'] ?: 'sem código') . '): ' . $item['application_summary'];
+                    $codes = array_filter([
+                        $item['product_code'] ?? '',
+                        $item['codigoOriginal'] ?? '',
+                        $item['codigoTotalfilter'] ?? '',
+                    ]);
+                    $line = '- ' . ($item['product_name'] ?? $item['descricao'] ?? 'Produto') . ' (' . ($codes ? implode(' / ', array_unique($codes)) : 'sem codigo') . '): ' . ($item['application_summary'] ?? $item['aplicacao'] ?? '');
+                    if (!empty($item['desenhoCodigo'])) {
+                        $line .= ' | Desenho: ' . $item['desenhoCodigo'];
+                    }
+                    $lines[] = $line;
                     continue;
                 }
 
@@ -85,13 +94,13 @@ final class KnowledgeService
 
     private function extractProductCode(string $query): string
     {
-        $tokens = preg_split('/[^A-Za-z0-9]+/', $query) ?: [];
+        $tokens = preg_split('/[^A-Za-z0-9.-]+/', $query) ?: [];
         foreach ($tokens as $token) {
             $token = trim($token);
             if (strlen($token) < 5) {
                 continue;
             }
-            if (preg_match('/[A-Za-z]/', $token) === 1 && preg_match('/\d/', $token) === 1) {
+            if (preg_match('/\d/', $token) === 1) {
                 return strtoupper($token);
             }
         }
