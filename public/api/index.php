@@ -20,6 +20,35 @@ set_exception_handler(static function (Throwable $exception) use ($appConfig): v
     ], 500);
 });
 
+register_shutdown_function(static function () use ($appConfig): void {
+    $error = error_get_last();
+    if ($error === null) {
+        return;
+    }
+
+    $fatalTypes = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR];
+    if (!in_array($error['type'] ?? 0, $fatalTypes, true)) {
+        return;
+    }
+
+    if (headers_sent()) {
+        return;
+    }
+
+    (new Logger($appConfig))->error('Erro fatal na API', [
+        'path' => $_SERVER['REQUEST_URI'] ?? '',
+        'erro' => $error['message'] ?? '',
+        'arquivo' => $error['file'] ?? '',
+        'linha' => $error['line'] ?? '',
+    ]);
+
+    jsonResponse([
+        'ok' => false,
+        'message' => 'Erro fatal na API.',
+        'detail' => !empty($appConfig['debug']) ? ($error['message'] ?? 'Erro fatal') : 'Consulte os logs da aplicacao.',
+    ], 500);
+});
+
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     http_response_code(204);
     exit;
