@@ -382,6 +382,13 @@
         return;
       }
 
+      if (this.shouldStartHumanSupportFromMessage(message)) {
+        this.inputEl.value = "";
+        this.state.messages.push({ role: "user", content: message });
+        this.handleHumanSupport(this.humanSupportTargetFromMessage(message));
+        return;
+      }
+
       this.inputEl.value = "";
       this.state.loading = true;
       this.statusEl.textContent = "Totalfilter";
@@ -470,10 +477,13 @@
       this.toggleLead(false);
     }
 
-    handleHumanSupport() {
+    handleHumanSupport(target = "atendimento") {
+      const handoffText = target === "comercial"
+        ? "Posso te direcionar para a equipe comercial no WhatsApp da Totalfilter. Se quiser continuar, responda sim. Se preferir ficar no chat, responda nao."
+        : "Posso te direcionar para o atendimento humano no WhatsApp da Totalfilter. Se quiser continuar, responda sim. Se preferir ficar no chat, responda nao.";
       this.state.messages.push({
         role: "assistant",
-        content: 'Posso te direcionar para o atendimento humano no WhatsApp da Totalfilter. Se quiser continuar, responda "sim". Se preferir ficar no chat, responda "não".',
+        content: handoffText,
       });
       this.state.pendingHumanConfirm = true;
       this.renderMessages();
@@ -497,6 +507,33 @@
       }
 
       return this.state.pendingHumanConfirm || this.lastAssistantAskedForWhatsApp();
+    }
+
+    shouldStartHumanSupportFromMessage(message) {
+      const normalized = this.normalizeAnswer(message);
+      return [
+        "falar com comercial",
+        "falar com o comercial",
+        "equipe comercial",
+        "setor comercial",
+        "atendimento comercial",
+        "vendedor",
+        "vendas",
+        "atendimento humano",
+        "falar com atendente",
+        "falar com uma pessoa",
+        "quero falar com uma pessoa",
+        "encaminhe para equipe",
+        "me encaminhe para equipe",
+        "suporte humano",
+      ].some((phrase) => normalized.includes(phrase));
+    }
+
+    humanSupportTargetFromMessage(message) {
+      const normalized = this.normalizeAnswer(message);
+      return ["comercial", "vendedor", "vendas"].some((phrase) => normalized.includes(phrase))
+        ? "comercial"
+        : "atendimento";
     }
 
     lastAssistantAskedForWhatsApp() {
