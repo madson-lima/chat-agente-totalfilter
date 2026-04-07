@@ -116,13 +116,15 @@ final class ProductRepository extends BaseRepository
         }
 
         $term = strtoupper(trim($term));
-        $items = $this->normalizeMany($this->mongo->product_index->find(['is_active' => 1]));
-        $items = array_values(array_filter($items, static fn(array $item): bool =>
-            strtoupper((string) ($item['product_code'] ?? '')) === $term
-            || strtoupper((string) ($item['product_name'] ?? '')) === $term
-            || strtoupper((string) ($item['codigoOriginal'] ?? '')) === $term
-            || strtoupper((string) ($item['codigoTotalfilter'] ?? '')) === $term
-        ));
+        $items = $this->normalizeMany($this->mongo->product_index->find([
+            'is_active' => 1,
+            '$or' => [
+                ['product_code' => $term],
+                ['product_name' => $term],
+                ['codigoOriginal' => $term],
+                ['codigoTotalfilter' => $term],
+            ],
+        ], ['limit' => 5]));
         usort($items, fn($a, $b) => [$b['is_launch'] ?? 0, $b['updated_at'] ?? ''] <=> [$a['is_launch'] ?? 0, $a['updated_at'] ?? '']);
         return array_slice($items, 0, 5);
     }
@@ -138,12 +140,15 @@ final class ProductRepository extends BaseRepository
             return $this->exactMatch($codigo);
         }
 
+        $regex = new MongoDB\BSON\Regex('(^|\\s)' . preg_quote($codigo, '/') . '(\\s|$)', 'i');
+
         return $this->normalizeMany($this->mongo->product_index->find([
             'is_active' => 1,
             '$or' => [
                 ['product_code' => $codigo],
                 ['codigoOriginal' => $codigo],
                 ['codigoTotalfilter' => $codigo],
+                ['searchableText' => $regex],
             ],
         ], ['limit' => $limit]));
     }

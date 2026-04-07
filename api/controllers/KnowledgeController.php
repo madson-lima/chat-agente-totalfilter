@@ -27,6 +27,15 @@ final class KnowledgeController
 
     public function products(): void
     {
-        jsonResponse(['ok' => true, 'items' => $this->productRepository->all()]);
+        $query = cleanText((string) ($_GET['q'] ?? ''), 200);
+        if ($query !== '') {
+            $items = $this->productRepository->findByCodigo($query);
+            if (empty($items)) {
+                $items = $this->productRepository->search($query, 20);
+            }
+            jsonResponse(['ok' => true, 'items' => $items]);
+        }
+
+        jsonResponse(['ok' => true, 'items' => array_slice($this->productRepository->all(), 0, 100)]);
     }
 }

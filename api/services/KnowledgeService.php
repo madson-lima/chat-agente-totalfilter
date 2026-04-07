@@ -20,6 +20,15 @@ final class KnowledgeService
         $products = [];
         if ($codeTerm !== '') {
             $products = $this->productRepository->exactMatch($codeTerm);
+            if (empty($products)) {
+                $products = $this->productRepository->findByCodigo($codeTerm);
+            }
+            if (empty($products) && str_starts_with($codeTerm, 'T')) {
+                $products = $this->productRepository->findByCodigo(substr($codeTerm, 1));
+            }
+            if (empty($products) && !str_starts_with($codeTerm, 'T')) {
+                $products = $this->productRepository->findByCodigo('T' . $codeTerm);
+            }
         }
         if (empty($products)) {
             $products = $this->productRepository->search($normalized);
