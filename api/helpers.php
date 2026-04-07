@@ -65,11 +65,16 @@ function isHttpsRequest(array $config = []): bool
         return true;
     }
 
+    $forwardedProto = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
     $trustedProxy = (string) ($config['trusted_proxy'] ?? '');
+    if ($forwardedProto !== '' && $trustedProxy === '') {
+        return $forwardedProto === 'https';
+    }
+
     if ($trustedProxy !== '') {
         $remoteAddr = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-        if ($remoteAddr === $trustedProxy && !empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-            return strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https';
+        if ($remoteAddr === $trustedProxy && $forwardedProto !== '') {
+            return $forwardedProto === 'https';
         }
     }
 
