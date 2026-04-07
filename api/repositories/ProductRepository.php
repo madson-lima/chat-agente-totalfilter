@@ -205,6 +205,12 @@ final class ProductRepository extends BaseRepository
                 ['product_code' => $codigoTotalfilter],
             ],
         ];
+        if (!empty($data['dadosBrutosDaLinha']['_linha_planilha'])) {
+            $filter['$or'][] = [
+                'fonte' => $data['fonte'],
+                'dadosBrutosDaLinha._linha_planilha' => (int) $data['dadosBrutosDaLinha']['_linha_planilha'],
+            ];
+        }
 
         $existing = $this->mongo->product_index->findOne($filter);
         $payload = [

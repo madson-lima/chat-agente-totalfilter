@@ -6,10 +6,10 @@ final class ProductSpreadsheetNormalizer
 {
     private const HEADER_ALIASES = [
         'marcaOrigem' => ['marca', 'linha', 'fabricante', 'origem'],
-        'codigoOriginal' => ['codigo', 'código', 'cod', 'cód', 'referencia', 'referência', 'unifilter', 'codigo original', 'código original'],
-        'descricao' => ['descricao', 'descrição', 'produto', 'nome', 'item'],
+        'codigoOriginal' => ['produto', 'codigo', 'código', 'cod', 'cód', 'codigo original', 'código original', 'unifilter'],
+        'descricao' => ['descricao', 'descrição', 'nome', 'item'],
         'desenhoCodigo' => ['desenho', 'desenho codigo', 'desenho código', 'codigo desenho', 'código desenho'],
-        'aplicacao' => ['aplicacao', 'aplicação', 'aplicacoes', 'aplicações', 'aplicaçao', 'veiculo', 'veículo', 'equipamento'],
+        'aplicacao' => ['referencia', 'referência', 'aplicacao', 'aplicação', 'aplicacoes', 'aplicações', 'aplicaçao', 'veiculo', 'veículo', 'equipamento'],
         'medidas' => ['medida', 'medidas', 'dimensao', 'dimensão', 'dimensoes', 'dimensões', 'altura', 'externo', 'interno'],
     ];
 
