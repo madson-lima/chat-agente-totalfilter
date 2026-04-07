@@ -6,23 +6,23 @@ require_once __DIR__ . '/bootstrap.php';
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verifyCsrf($_POST['_csrf_token'] ?? null)) {
-        $error = 'Sua sessao expirou. Atualize a pagina e tente novamente.';
-    }
-
     $user = cleanText($_POST['user'] ?? '', 80);
     $password = (string) ($_POST['password'] ?? '');
     $config = adminConfig();
+    $csrfValid = verifyCsrf($_POST['_csrf_token'] ?? null);
 
-    if ($error === '' && $user === $config['user'] && adminVerifyPassword($config, $password)) {
+    if ($user === $config['user'] && adminVerifyPassword($config, $password)) {
         $_SESSION['admin_logged_in'] = true;
+        if (!$csrfValid) {
+            $_SESSION['_csrf_token'] = bin2hex(random_bytes(32));
+        }
         header('Location: /admin/');
         exit;
     }
 
-    if ($error === '') {
-        $error = 'Usuario ou senha invalidos.';
-    }
+    $error = $csrfValid
+        ? 'Usuario ou senha invalidos.'
+        : 'Sua sessao expirou. Atualize a pagina e tente novamente.';
 }
 ?>
 <!doctype html>
