@@ -229,11 +229,16 @@ PROMPT;
 
                 $product = $knowledge['products'][0];
                 $parts = [];
-                $displayName = $product['product_name'] ?? $product['descricao'] ?? 'produto';
                 $displayCode = $product['codigoTotalfilter'] ?? $product['product_code'] ?? '';
-                $parts[] = 'Encontrei o produto ' . $displayName . ($displayCode ? ' (codigo ' . $displayCode . ')' : '') . '.';
+                $displayName = $product['descricao'] ?? $product['product_name'] ?? 'produto';
+                $parts[] = $displayCode !== ''
+                    ? 'Encontrei na linha Totalfilter o codigo ' . $displayCode . '.'
+                    : 'Encontrei um produto Totalfilter compatível.';
                 if (!empty($product['codigoOriginal']) && !empty($product['codigoTotalfilter'])) {
-                    $parts[] = 'Codigo original: ' . $product['codigoOriginal'] . '. Codigo Totalfilter: ' . $product['codigoTotalfilter'] . '.';
+                    $parts[] = 'Codigo original/equivalente: ' . $product['codigoOriginal'] . '.';
+                }
+                if ($displayName !== '' && $displayName !== $displayCode) {
+                    $parts[] = 'Descricao: ' . $displayName . '.';
                 }
                 if (!empty($product['category'])) {
                     $parts[] = 'Categoria: ' . $product['category'] . '.';
@@ -266,9 +271,10 @@ PROMPT;
                 $items = array_slice($knowledge['launches'], 0, 3);
                 $lines = ['Encontrei estes lancamentos ou novidades no catalogo publico da Totalfilter:'];
                 foreach ($items as $item) {
-                    $line = '- ' . $item['product_name'];
-                    if (!empty($item['product_code'])) {
-                        $line .= ' (' . $item['product_code'] . ')';
+                    $code = $item['codigoTotalfilter'] ?? $item['product_code'] ?? '';
+                    $line = '- ' . ($code !== '' ? $code : ($item['product_name'] ?? 'Produto Totalfilter'));
+                    if (!empty($item['product_name']) && $item['product_name'] !== $code) {
+                        $line .= ' - ' . $item['product_name'];
                     }
                     if (!empty($item['application_summary'])) {
                         $line .= ': ' . $item['application_summary'];

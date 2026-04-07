@@ -11,15 +11,15 @@ final class ProductResponseHelper
         }
 
         $product = $products[0];
-        $codigoOriginal = (string) ($product['codigoOriginal'] ?? $product['product_code'] ?? $codigo);
-        $codigoTotalfilter = (string) ($product['codigoTotalfilter'] ?? $product['product_code'] ?? '');
+        $codigoTotalfilter = (string) ($product['codigoTotalfilter'] ?? $product['product_code'] ?? $codigo);
+        $codigoOriginal = (string) ($product['codigoOriginal'] ?? '');
         $descricao = (string) ($product['descricao'] ?? $product['product_name'] ?? '');
         $aplicacao = (string) ($product['aplicacao'] ?? $product['application_summary'] ?? '');
         $desenho = (string) ($product['desenhoCodigo'] ?? '');
 
-        $parts = ["Sim. Encontrei o produto {$codigoOriginal}."];
-        if ($codigoTotalfilter !== '') {
-            $parts[] = "Na linha Totalfilter, o codigo correspondente e {$codigoTotalfilter}.";
+        $parts = ["Sim. Encontrei na linha Totalfilter o codigo {$codigoTotalfilter}."];
+        if ($codigoOriginal !== '' && $codigoOriginal !== $codigoTotalfilter) {
+            $parts[] = "Codigo original/equivalente: {$codigoOriginal}.";
         }
         if ($descricao !== '') {
             $parts[] = "Descricao: {$descricao}.";
@@ -41,13 +41,17 @@ final class ProductResponseHelper
         }
 
         $product = $products[0];
-        $codigoOriginal = (string) ($product['codigoOriginal'] ?? $codigo);
         $codigoTotalfilter = (string) ($product['codigoTotalfilter'] ?? $product['product_code'] ?? '');
+        $codigoOriginal = (string) ($product['codigoOriginal'] ?? $codigo);
 
         if ($codigoTotalfilter === '') {
             return 'Encontrei o produto, mas nao ha codigo Totalfilter cadastrado para ele na base importada.';
         }
 
-        return "O equivalente na linha Totalfilter para o codigo {$codigoOriginal} e {$codigoTotalfilter}.";
+        if ($codigoOriginal !== '' && $codigoOriginal !== $codigoTotalfilter) {
+            return "O codigo Totalfilter e {$codigoTotalfilter}. Ele corresponde ao codigo original/equivalente {$codigoOriginal}.";
+        }
+
+        return "O codigo Totalfilter e {$codigoTotalfilter}.";
     }
 }

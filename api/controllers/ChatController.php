@@ -735,13 +735,15 @@ final class ChatController
         $cards = [];
 
         foreach ($items as $item) {
+            $totalfilterCode = $item['codigoTotalfilter'] ?? $item['product_code'] ?? '';
+            $description = $item['descricao'] ?? $item['product_name'] ?? '';
             $cards[] = [
-                'title' => $item['product_name'] ?? $item['descricao'] ?? '',
-                'code' => $item['codigoTotalfilter'] ?? $item['product_code'] ?? '',
+                'title' => $totalfilterCode !== '' ? $totalfilterCode : $description,
+                'code' => $totalfilterCode,
                 'category' => $item['category'] ?? '',
                 'summary' => $item['application_summary'] ?? $item['aplicacao'] ?? '',
                 'details_url' => $item['product_url'] ?? '',
-                'status' => $item['status_label'] ?? (!empty($item['codigoOriginal']) ? 'Equiv. ' . $item['codigoOriginal'] : ''),
+                'status' => !empty($item['codigoOriginal']) ? 'Equiv. ' . $item['codigoOriginal'] : ($item['status_label'] ?? ''),
             ];
         }
 

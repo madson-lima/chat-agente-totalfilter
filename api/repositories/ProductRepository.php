@@ -80,8 +80,9 @@ final class ProductRepository extends BaseRepository
             $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['product_code'] ?? '')) ? 5 : 0;
             $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['application_summary'] ?? '')) ? 3 : 0;
             $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['keywords'] ?? '')) ? 4 : 0;
-            $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['codigoOriginal'] ?? '')) ? 8 : 0;
-            $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['codigoTotalfilter'] ?? '')) ? 8 : 0;
+            $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['codigoTotalfilter'] ?? '')) ? 12 : 0;
+            $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['product_code'] ?? '')) ? 10 : 0;
+            $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['codigoOriginal'] ?? '')) ? 7 : 0;
             $relevance += preg_match('/' . preg_quote($query, '/') . '/i', (string) ($item['searchableText'] ?? '')) ? 4 : 0;
             $item['relevance'] = $relevance;
         }
@@ -125,7 +126,17 @@ final class ProductRepository extends BaseRepository
                 ['codigoTotalfilter' => $term],
             ],
         ], ['limit' => 5]));
-        usort($items, fn($a, $b) => [$b['is_launch'] ?? 0, $b['updated_at'] ?? ''] <=> [$a['is_launch'] ?? 0, $a['updated_at'] ?? '']);
+        usort($items, function ($a, $b) use ($term) {
+            $score = static function (array $item) use ($term): int {
+                $score = 0;
+                $score += strtoupper((string) ($item['codigoTotalfilter'] ?? '')) === $term ? 30 : 0;
+                $score += strtoupper((string) ($item['product_code'] ?? '')) === $term ? 20 : 0;
+                $score += strtoupper((string) ($item['codigoOriginal'] ?? '')) === $term ? 10 : 0;
+                return $score;
+            };
+
+            return [$score($b), $b['is_launch'] ?? 0, $b['updated_at'] ?? ''] <=> [$score($a), $a['is_launch'] ?? 0, $a['updated_at'] ?? ''];
+        });
         return array_slice($items, 0, 5);
     }
 
