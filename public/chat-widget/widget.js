@@ -426,6 +426,12 @@
 
       if (action.type === "human_handoff") {
         this.state.pendingHumanConfirm = true;
+        return;
+      }
+
+      if (action.type === "open_whatsapp" && action.url) {
+        this.state.pendingHumanConfirm = false;
+        setTimeout(() => window.open(action.url, "_blank", "noopener"), this.uiDelay);
       }
     }
 

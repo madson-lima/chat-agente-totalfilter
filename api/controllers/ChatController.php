@@ -95,6 +95,13 @@ final class ChatController
         $this->chatRepository->incrementMessageCount((int) $session['id']);
 
         $metadata = $this->sessionMetadata($session);
+        if (!empty($metadata['pending_handoff']['active'])) {
+            $handoffResponse = $this->handlePendingHandoff($session, $metadata, $message);
+            if ($handoffResponse !== null) {
+                jsonResponse($handoffResponse);
+            }
+        }
+
         if (!empty($metadata['lead_flow']['active'])) {
             $newIntent = $this->assistantService->inferPublicIntent($message);
             if ($this->shouldInterruptLeadFlow($message, $newIntent)) {
@@ -132,12 +139,24 @@ final class ChatController
         }
         $this->chatRepository->addMessage((int) $session['id'], 'assistant', $assistantMessage, $messageMeta);
         $count = $this->chatRepository->incrementMessageCount((int) $session['id']);
-        $this->chatRepository->updateSession((int) $session['id'], [
+        if (($reply['action']['type'] ?? '') === 'human_handoff') {
+            $metadata['pending_handoff'] = [
+                'active' => true,
+                'target' => $reply['action']['target'] ?? 'atendimento',
+                'requested_at' => date(DATE_ATOM),
+            ];
+        }
+
+        $sessionUpdate = [
             'last_user_message' => $message,
             'last_assistant_message' => $assistantMessage,
             'last_topic' => $reply['intent'],
             'message_count' => $count,
-        ]);
+        ];
+        if (array_key_exists('pending_handoff', $metadata)) {
+            $sessionUpdate['metadata_json'] = json_encode($metadata, JSON_UNESCAPED_UNICODE);
+        }
+        $this->chatRepository->updateSession((int) $session['id'], $sessionUpdate);
         $refreshed = $this->chatRepository->findByToken($token);
         if ($refreshed) {
             $this->contextService->maybeUpdateSummary($refreshed);
@@ -224,6 +243,90 @@ final class ChatController
     {
         $decoded = json_decode((string) ($session['metadata_json'] ?? ''), true);
         return is_array($decoded) ? $decoded : [];
+    }
+
+    private function handlePendingHandoff(array $session, array $metadata, string $message): ?array
+    {
+        $normalized = $this->normalizeShortAnswer($message);
+
+        if (in_array($normalized, ['sim', 's', 'ok', 'claro', 'pode', 'quero', 'abrir whatsapp', 'abrir'], true)) {
+            unset($metadata['pending_handoff']);
+            $whatsappUrl = $this->whatsappUrl();
+            $assistantMessage = 'Perfeito. Vou abrir o WhatsApp da Totalfilter para voce agora. Se nao abrir automaticamente, acesse: ' . $whatsappUrl;
+            $action = [
+                'type' => 'open_whatsapp',
+                'target' => 'comercial',
+                'url' => $whatsappUrl,
+            ];
+
+            return $this->storeAssistantFlowResponse($session, $metadata, $assistantMessage, 'handoff-confirmation', 'atendimento_humano', $action);
+        }
+
+        if (in_array($normalized, ['nao', 'n', 'agora nao', 'cancelar', 'continuar no chat'], true)) {
+            unset($metadata['pending_handoff']);
+            $assistantMessage = 'Sem problema. Continuo te ajudando por aqui com produtos, aplicacao, orcamento ou contato comercial.';
+            return $this->storeAssistantFlowResponse($session, $metadata, $assistantMessage, 'handoff-cancel', 'atendimento_humano');
+        }
+
+        if (preg_match('/\b(filtro|produto|codigo|aplicacao|orcamento|cotacao|telefone|endereco|onde fica)\b/u', $normalized) === 1) {
+            unset($metadata['pending_handoff']);
+            $this->chatRepository->updateSession((int) $session['id'], [
+                'metadata_json' => json_encode($metadata, JSON_UNESCAPED_UNICODE),
+            ]);
+            return null;
+        }
+
+        $assistantMessage = 'Se quiser que eu abra o WhatsApp da Totalfilter, responda "sim". Se preferir continuar por aqui, responda "nao".';
+        return $this->storeAssistantFlowResponse($session, $metadata, $assistantMessage, 'handoff-confirmation', 'atendimento_humano', [
+            'type' => 'human_handoff',
+            'target' => $metadata['pending_handoff']['target'] ?? 'atendimento',
+        ], [
+            ['label' => 'Abrir WhatsApp', 'value' => 'sim'],
+            ['label' => 'Continuar no chat', 'value' => 'nao'],
+        ]);
+    }
+
+    private function storeAssistantFlowResponse(array $session, array $metadata, string $assistantMessage, string $source, string $intent, ?array $action = null, array $contextActions = []): array
+    {
+        $meta = ['source' => $source, 'intent' => $intent];
+        if ($action !== null) {
+            $meta['action'] = $action;
+        }
+
+        $this->chatRepository->addMessage((int) $session['id'], 'assistant', $assistantMessage, $meta);
+        $count = $this->chatRepository->incrementMessageCount((int) $session['id']);
+        $this->chatRepository->updateSession((int) $session['id'], [
+            'metadata_json' => json_encode($metadata, JSON_UNESCAPED_UNICODE),
+            'last_assistant_message' => $assistantMessage,
+            'last_topic' => $intent,
+            'message_count' => $count,
+        ]);
+
+        return [
+            'ok' => true,
+            'message' => $assistantMessage,
+            'intent' => $intent,
+            'action' => $action,
+            'history' => $this->chatRepository->recentMessages((int) $session['id'], 20),
+            'suggest_capture_lead' => false,
+            'context_actions' => $contextActions,
+        ];
+    }
+
+    private function normalizeShortAnswer(string $message): string
+    {
+        $text = trim(mb_strtolower(cleanText($message, 120)));
+        $converted = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text);
+        if (is_string($converted) && $converted !== '') {
+            $text = $converted;
+        }
+        $text = preg_replace('/[^\p{L}\p{N}\s.-]+/u', ' ', $text) ?? $text;
+        return trim(preg_replace('/\s+/', ' ', $text) ?? $text);
+    }
+
+    private function whatsappUrl(): string
+    {
+        return 'https://wa.me/5511974238992?text=' . rawurlencode('Ola! Vim pelo site da Totalfilter e gostaria de falar com um atendente.');
     }
 
     private function startLeadFlow(array $session, string $message): array
