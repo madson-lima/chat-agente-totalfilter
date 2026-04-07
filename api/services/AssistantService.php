@@ -10,6 +10,7 @@ final class AssistantService
         private KnowledgeService $knowledgeService,
         private ContextService $contextService,
         private GuardrailService $guardrailService,
+        private IntentService $intentService,
         private LlmService $llmService
     ) {
     }
@@ -90,8 +91,26 @@ PROMPT;
         }
 
         $context = $this->contextService->build($session);
+        $structuredIntent = $this->intentService->detect($inspection['message'], [
+            'last_topic' => $context['last_topic'] ?? '',
+            'session_token' => $session['session_token'] ?? '',
+        ]);
+        $intentResponse = $this->intentService->responseFor($structuredIntent, [
+            'session_token' => $session['session_token'] ?? '',
+        ]);
+        if ($intentResponse !== null) {
+            return [
+                'answer' => $intentResponse['answer'],
+                'source' => $intentResponse['source'],
+                'knowledge' => [],
+                'intent' => $intentResponse['intent'],
+                'action' => $intentResponse['action'] ?? null,
+                'context_actions' => $intentResponse['context_actions'] ?? [],
+            ];
+        }
+
         $knowledge = $this->knowledgeService->buildContext($inspection['message']);
-        $intent = $this->inferIntent($inspection['message']);
+        $intent = $this->inferIntent($inspection['message'], $structuredIntent);
 
         if (in_array($intent, ['handoff', 'contato', 'compra', 'produto', 'lancamentos'], true)) {
             return [
@@ -122,7 +141,7 @@ PROMPT;
 
     public function inferPublicIntent(string $message): string
     {
-        return $this->inferIntent($message);
+        return $this->inferIntent($message, $this->intentService->detect($message));
     }
 
     private function composeMessages(string $message, array $context, array $knowledge, string $intent): array
@@ -147,9 +166,22 @@ PROMPT;
         ]];
     }
 
-    private function inferIntent(string $message): string
+    private function inferIntent(string $message, ?array $structuredIntent = null): string
     {
         $text = mb_strtolower($message);
+        $detected = (string) ($structuredIntent['intent'] ?? '');
+
+        $mapped = match ($detected) {
+            'encaminhamento_equipe', 'atendimento_humano', 'comercial' => 'handoff',
+            'orcamento' => 'compra',
+            'busca_codigo', 'busca_aplicacao', 'referencia_contextual', 'pedido_ficha_tecnica' => 'produto',
+            'fallback_ajudado' => 'produto',
+            default => '',
+        };
+
+        if ($mapped !== '') {
+            return $mapped;
+        }
 
         return match (true) {
             preg_match('/(orcamento|orçamento|cotacao|cotação|comprar|preco|preço|revenda|distribui)/u', $text) === 1 => 'compra',

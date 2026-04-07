@@ -389,6 +389,7 @@
         const payload = await response.json();
         this.state.messages = payload.history || this.state.messages;
         this.state.contextActions = payload.context_actions || [];
+        this.handleAssistantAction(payload.action);
         this.renderMessages();
         if (payload.suggest_capture_lead) {
           setTimeout(() => this.toggleLead(true), this.uiDelay);
@@ -418,6 +419,14 @@
       this.state.pendingHumanConfirm = false;
       this.state.contextActions = [];
       this.bootstrapSession();
+    }
+
+    handleAssistantAction(action) {
+      if (!action || typeof action !== "object") return;
+
+      if (action.type === "human_handoff") {
+        this.state.pendingHumanConfirm = true;
+      }
     }
 
     toggleLead(open) {

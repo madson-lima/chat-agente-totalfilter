@@ -24,7 +24,7 @@ final class ChatController
         $this->contextService = new ContextService($this->chatRepository, $config);
         $this->logger = new Logger($config);
         $knowledgeService = new KnowledgeService($faqRepository, $knowledgeRepository, $productRepository);
-        $this->assistantService = new AssistantService($config, $this->settingsRepository, $knowledgeService, $this->contextService, new GuardrailService(), new LlmService($config, $this->logger));
+        $this->assistantService = new AssistantService($config, $this->settingsRepository, $knowledgeService, $this->contextService, new GuardrailService(), new IntentService(), new LlmService($config, $this->logger));
         $this->leadService = new LeadService($leadRepository, $this->chatRepository, new LeadNotificationService($config, $this->logger));
         $this->handoffService = new HandoffService($handoffRepository, $this->chatRepository);
     }
@@ -123,6 +123,9 @@ final class ChatController
 
         $assistantMessage = cleanText($reply['answer'], 4000);
         $messageMeta = ['source' => $reply['source'], 'intent' => $reply['intent']];
+        if (!empty($reply['action'])) {
+            $messageMeta['action'] = $reply['action'];
+        }
         $productCards = $this->buildProductCards($reply['knowledge'] ?? []);
         if (!empty($productCards)) {
             $messageMeta['product_cards'] = $productCards;
@@ -140,15 +143,22 @@ final class ChatController
             $this->contextService->maybeUpdateSummary($refreshed);
         }
 
-        $this->logger->info('Mensagem processada', ['session_token' => $token, 'intent' => $reply['intent'], 'source' => $reply['source']]);
+        $this->logger->info('Mensagem processada', [
+            'session_token' => $token,
+            'message' => mb_substr($message, 0, 180),
+            'intent' => $reply['intent'],
+            'source' => $reply['source'],
+            'action' => $reply['action'] ?? null,
+        ]);
 
         jsonResponse([
             'ok' => true,
             'message' => $assistantMessage,
             'intent' => $reply['intent'],
+            'action' => $reply['action'] ?? null,
             'history' => $this->chatRepository->recentMessages((int) $session['id'], 20),
             'suggest_capture_lead' => $reply['intent'] === 'compra',
-            'context_actions' => [],
+            'context_actions' => $reply['context_actions'] ?? [],
         ]);
     }
 
