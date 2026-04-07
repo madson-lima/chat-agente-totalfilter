@@ -372,6 +372,11 @@
       const message = (value || "").trim();
       if (!message || this.state.loading) return;
 
+      if (this.shouldOpenWhatsAppFromMessage(message)) {
+        this.handleHumanConfirmation(message);
+        return;
+      }
+
       if (this.state.pendingHumanConfirm) {
         this.handleHumanConfirmation(message);
         return;
@@ -438,7 +443,6 @@
 
       if (action.type === "open_whatsapp" && action.url) {
         this.state.pendingHumanConfirm = false;
-        setTimeout(() => window.open(action.url, "_blank", "noopener"), this.uiDelay);
       }
     }
 
@@ -476,25 +480,60 @@
     }
 
     openHumanSupport() {
+      const popup = window.open(this.humanSupportUrl(), "_blank", "noopener");
+      return popup !== null;
+    }
+
+    humanSupportUrl() {
       const phone = "5511974238992";
       const text = encodeURIComponent("Olá! Vim pelo site da Totalfilter e gostaria de falar com um atendente.");
-      window.open(`https://wa.me/${phone}?text=${text}`, "_blank", "noopener");
+      return `https://wa.me/${phone}?text=${text}`;
+    }
+
+    shouldOpenWhatsAppFromMessage(message) {
+      const normalized = this.normalizeAnswer(message);
+      if (!["sim", "s", "ok", "claro", "pode", "quero", "abrir whatsapp", "abrir"].includes(normalized)) {
+        return false;
+      }
+
+      return this.state.pendingHumanConfirm || this.lastAssistantAskedForWhatsApp();
+    }
+
+    lastAssistantAskedForWhatsApp() {
+      const lastAssistant = [...this.state.messages].reverse().find((item) => item.role === "assistant");
+      if (!lastAssistant || !lastAssistant.content) return false;
+
+      const content = String(lastAssistant.content).toLowerCase();
+      return content.includes("whatsapp") && (content.includes("quer") || content.includes("responda"));
+    }
+
+    normalizeAnswer(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\p{L}\p{N}\s.-]+/gu, " ")
+        .replace(/\s+/g, " ")
+        .trim();
     }
 
     handleHumanConfirmation(value) {
       const message = (value || "").trim();
-      const normalized = message.toLowerCase();
+      const normalized = this.normalizeAnswer(message);
       this.inputEl.value = "";
       this.state.messages.push({ role: "user", content: message });
 
       if (["sim", "s", "ok", "claro", "pode", "quero"].includes(normalized)) {
+        const opened = this.openHumanSupport();
         this.state.messages.push({
           role: "assistant",
-          content: "Perfeito. Vou abrir o WhatsApp da Totalfilter para voce agora.",
+          content: opened
+            ? "Perfeito. Estou abrindo o WhatsApp da Totalfilter para voce agora."
+            : "Perfeito. Tentei abrir o WhatsApp da Totalfilter, mas o navegador bloqueou a abertura automatica. Clique em Atendimento humano para abrir manualmente.",
         });
         this.state.pendingHumanConfirm = false;
         this.renderMessages();
-        setTimeout(() => this.openHumanSupport(), this.uiDelay);
         return;
       }
 

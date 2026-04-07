@@ -252,7 +252,7 @@ final class ChatController
         if (in_array($normalized, ['sim', 's', 'ok', 'claro', 'pode', 'quero', 'abrir whatsapp', 'abrir'], true)) {
             unset($metadata['pending_handoff']);
             $whatsappUrl = $this->whatsappUrl();
-            $assistantMessage = 'Perfeito. Vou abrir o WhatsApp da Totalfilter para voce agora. Se nao abrir automaticamente, acesse: ' . $whatsappUrl;
+            $assistantMessage = 'Perfeito. Vou abrir o WhatsApp da Totalfilter para voce agora.';
             $action = [
                 'type' => 'open_whatsapp',
                 'target' => 'comercial',
