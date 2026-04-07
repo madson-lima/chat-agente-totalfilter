@@ -131,7 +131,12 @@ function adminVerifyPassword(array $config, string $password): bool
 {
     $hash = (string) ($config['password_hash'] ?? '');
     if ($hash !== '') {
-        return password_verify($password, $hash);
+        if (password_verify($password, $hash)) {
+            return true;
+        }
+
+        $fallbackPassword = (string) ($config['password'] ?? '');
+        return $fallbackPassword !== '' && hash_equals($fallbackPassword, $password);
     }
 
     return hash_equals((string) ($config['password'] ?? ''), $password);
