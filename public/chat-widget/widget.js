@@ -356,7 +356,14 @@
         button.type = "button";
         button.className = "tf-chip";
         button.textContent = action.label;
-        button.addEventListener("click", () => this.sendMessage(action.value));
+        button.addEventListener("click", () => {
+          if (action.type === "open_url" && action.url) {
+            window.open(action.url, "_blank", "noopener");
+            return;
+          }
+
+          this.sendMessage(action.value);
+        });
         this.contextActionsEl.appendChild(button);
       });
     }

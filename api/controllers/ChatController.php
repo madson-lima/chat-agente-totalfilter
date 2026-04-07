@@ -259,7 +259,10 @@ final class ChatController
                 'url' => $whatsappUrl,
             ];
 
-            return $this->storeAssistantFlowResponse($session, $metadata, $assistantMessage, 'handoff-confirmation', 'atendimento_humano', $action);
+            return $this->storeAssistantFlowResponse($session, $metadata, $assistantMessage, 'handoff-confirmation', 'atendimento_humano', $action, [
+                ['label' => 'Abrir WhatsApp', 'type' => 'open_url', 'url' => $whatsappUrl],
+                ['label' => 'Continuar no chat', 'value' => 'nao'],
+            ]);
         }
 
         if (in_array($normalized, ['nao', 'n', 'agora nao', 'cancelar', 'continuar no chat'], true)) {
