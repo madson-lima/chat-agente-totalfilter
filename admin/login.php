@@ -38,6 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         h1{margin-top:0;color:#151515}
         input{width:100%;margin:8px 0 14px;padding:12px;border:1px solid rgba(0,0,0,.12);border-radius:12px;background:#fffdf8}
         input:focus{outline:2px solid rgba(255,209,0,.35);border-color:var(--tf-gold-dark)}
+        .password-wrap{position:relative}
+        .password-wrap input{box-sizing:border-box;padding-right:48px}
+        .password-toggle{position:absolute;right:8px;top:8px;width:34px;height:34px;border:0;border-radius:10px;background:transparent;color:#333;cursor:pointer;display:grid;place-items:center}
+        .password-toggle:hover,.password-toggle:focus{background:rgba(255,209,0,.18);outline:0}
+        .password-toggle svg{width:19px;height:19px;stroke:currentColor}
         button{width:100%;padding:12px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--tf-gold),var(--tf-gold-dark));color:#000;font-weight:700}
         .error{color:#b42318;margin-bottom:12px}
     </style>
@@ -51,8 +56,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label>Usuario</label>
         <input name="user" required>
         <label>Senha</label>
-        <input type="password" name="password" required>
+        <div class="password-wrap">
+            <input id="admin-password" type="password" name="password" required>
+            <button class="password-toggle" type="button" aria-label="Mostrar senha" aria-pressed="false" data-password-toggle>
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            </button>
+        </div>
         <button type="submit">Entrar</button>
     </form>
+    <script>
+        const toggle = document.querySelector('[data-password-toggle]');
+        const password = document.getElementById('admin-password');
+
+        toggle?.addEventListener('click', () => {
+            const visible = password.type === 'text';
+            password.type = visible ? 'password' : 'text';
+            toggle.setAttribute('aria-pressed', String(!visible));
+            toggle.setAttribute('aria-label', visible ? 'Mostrar senha' : 'Ocultar senha');
+        });
+    </script>
 </body>
 </html>
