@@ -129,17 +129,17 @@ function enforceHttps(array $config = []): void
 
 function adminVerifyPassword(array $config, string $password): bool
 {
-    $hash = (string) ($config['password_hash'] ?? '');
+    $hash = trim((string) ($config['password_hash'] ?? ''));
     if ($hash !== '') {
         if (password_verify($password, $hash)) {
             return true;
         }
 
-        $fallbackPassword = (string) ($config['password'] ?? '');
+        $fallbackPassword = trim((string) ($config['password'] ?? ''));
         return $fallbackPassword !== '' && hash_equals($fallbackPassword, $password);
     }
 
-    return hash_equals((string) ($config['password'] ?? ''), $password);
+    return hash_equals(trim((string) ($config['password'] ?? '')), $password);
 }
 
 function csrfToken(): string

@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $config = adminConfig();
     $csrfValid = verifyCsrf($_POST['_csrf_token'] ?? null);
 
-    if ($user === $config['user'] && adminVerifyPassword($config, $password)) {
+    if ($user === trim((string) $config['user']) && adminVerifyPassword($config, $password)) {
         $_SESSION['admin_logged_in'] = true;
         if (!$csrfValid) {
             $_SESSION['_csrf_token'] = bin2hex(random_bytes(32));
@@ -33,7 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Painel Totalfilter</title>
     <style>
         :root{--tf-black:#0a0a0a;--tf-gold:#ffd100;--tf-gold-dark:#d6b602;--tf-border:rgba(255,209,0,.22)}
-        body{font-family:Arial,sans-serif;background:radial-gradient(circle at top right,rgba(255,209,0,.18),transparent 30%),linear-gradient(180deg,#f6f1dc,#fffdf4);display:grid;place-items:center;min-height:100vh;margin:0}
+        html{min-height:100%;background:#fffdf4}
+        body{font-family:Arial,sans-serif;background:radial-gradient(circle at top right,rgba(255,209,0,.18),transparent 30%),linear-gradient(180deg,#f6f1dc,#fffdf4);display:grid;place-items:center;min-height:100vh;margin:0;overflow-x:hidden}
         .card{width:min(420px,92vw);background:#fff;border-radius:24px;padding:28px;box-shadow:0 18px 50px rgba(0,0,0,.14);border:1px solid var(--tf-border)}
         h1{margin-top:0;color:#151515}
         input{width:100%;margin:8px 0 14px;padding:12px;border:1px solid rgba(0,0,0,.12);border-radius:12px;background:#fffdf8}
@@ -54,10 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($error): ?><div class="error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
         <?= csrfField() ?>
         <label>Usuario</label>
-        <input name="user" required>
+        <input name="user" autocomplete="username" required>
         <label>Senha</label>
         <div class="password-wrap">
-            <input id="admin-password" type="password" name="password" required>
+            <input id="admin-password" type="password" name="password" autocomplete="current-password" required>
             <button class="password-toggle" type="button" aria-label="Mostrar senha" aria-pressed="false" data-password-toggle>
                 <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/>
